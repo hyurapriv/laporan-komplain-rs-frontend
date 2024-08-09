@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap');@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+}
+
+body {
+  @apply overflow-x-hidden;
+}
+
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+.duration-300 {
+  transition-duration: 300ms;
+}
+
+.ease-in-out {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tambahkan ini untuk memastikan konten utama menyesuaikan dengan benar */
+main {
+  width: calc(100% - 16rem); /* Lebar penuh dikurangi lebar sidebar yang terbuka */
+}
+
+.sidebar-collapsed main {
+  width: calc(100% - 4rem); /* Lebar penuh dikurangi lebar sidebar yang tertutup */
+}
+
+/* Custom Scrollbar for WebKit Browsers */
+.sidebar::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1); /* Background of the scrollbar track */
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3); /* Color of the scrollbar thumb */
+  border-radius: 4px; /* Rounded corners of the scrollbar thumb */
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5); /* Darker color when hovering */
+}
+
+/* Firefox */
+.sidebar {
+  scrollbar-width: thin; /* Makes the scrollbar thinner */
+  scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1); /* Thumb color and track color */
+  overflow-x: hidden;
+}
+
+/* Ensure sidebar is scrollable */
+.sidebar {
+  overflow-y: auto; /* Allows vertical scrolling */
+}
+
