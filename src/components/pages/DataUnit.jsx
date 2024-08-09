@@ -25,6 +25,22 @@ ChartJS.register(
 const Loading = lazy(() => import('../ui/Loading'));
 const Bar = lazy(() => import('react-chartjs-2').then(module => ({ default: module.Bar })));
 
+// Define color palette for service chart
+const colorPalette = [
+  '#B414EF', '#0FBB98', '#FFCE56', '#A10E48', '#C1F39B', '#2EE4F3', '#577F8A', '#7CFC00', '#8B008B', '#00CED1', '#FF4500', 
+  '#1E90FF', '#FF1493', '#32CD32', '#FF8C00', '#4169E1', '#8A2BE2', '#C1FDBB'
+];
+
+// Define status colors and order
+const statusColors = {
+  'Terkirim': '#36A2EB',  // Blue
+  'Proses': '#F79D23',    // Yellow
+  'Selesai': '#32CD32',   // Green
+  'Pending': '#A70B17'    // Orange
+};
+
+const statusOrder = ['Terkirim', 'Proses', 'Selesai', 'Pending'];
+
 const DataUnit = () => {
   const [serviceChartData, setServiceChartData] = useState({ labels: [], datasets: [] });
   const [statusChartData, setStatusChartData] = useState({ labels: [], datasets: [] });
@@ -36,23 +52,26 @@ const DataUnit = () => {
     selectedMonth,
     getMonthName,
     error,
-    loading
+    loading,
+    serviceChartData: processedServiceChartData
   } = useDummyData();
 
   const units = useMemo(() => {
     return dataKomplain?.jumlahUnitStatus ? Object.keys(dataKomplain.jumlahUnitStatus) : [];
   }, [dataKomplain]);
 
-  // Use useCallback to avoid re-creating functions on every render
   const updateChartData = useCallback(() => {
-    if (dataKomplain && dataKomplain.jumlahLayanan && selectedUnit) {
-      const serviceData = dataKomplain.jumlahLayanan[selectedUnit]?.layanan || {};
-      const labels = Object.keys(serviceData);
+    if (processedServiceChartData && selectedUnit) {
+      const filteredData = processedServiceChartData.filter(item => item.unit === selectedUnit);
+      const labels = filteredData.map(item => item.layanan);
+      const data = filteredData.map(item => item.jumlah);
+      const backgroundColor = data.map((_, index) => colorPalette[index % colorPalette.length]);
+      
       const datasets = [
         {
-          label: 'Jumlah Layanan',
-          data: Object.values(serviceData),
-          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#267db3', '#6dc486', '#fad25e', '#ec6444', '#8561c8', '#E67E22'],
+          label: 'Jumlah Komplain',
+          data: data,
+          backgroundColor: backgroundColor,
         },
       ];
       setServiceChartData({ labels, datasets });
@@ -60,17 +79,20 @@ const DataUnit = () => {
 
     if (dataKomplain && dataKomplain.jumlahUnitStatus && selectedUnit) {
       const statusData = dataKomplain.jumlahUnitStatus[selectedUnit]?.statuses || {};
-      const labels = Object.keys(statusData);
+      const orderedLabels = statusOrder.filter(status => statusData.hasOwnProperty(status));
+      const data = orderedLabels.map(label => statusData[label]);
+      const backgroundColor = orderedLabels.map(label => statusColors[label]);
+      
       const datasets = [
         {
           label: 'Jumlah Status',
-          data: Object.values(statusData),
-          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+          data: data,
+          backgroundColor: backgroundColor,
         },
       ];
-      setStatusChartData({ labels, datasets });
+      setStatusChartData({ labels: orderedLabels, datasets });
     }
-  }, [dataKomplain, selectedUnit]);
+  }, [dataKomplain, selectedUnit, processedServiceChartData]);
 
   useEffect(() => {
     updateChartData();
@@ -83,8 +105,8 @@ const DataUnit = () => {
   }, [units, selectedUnit]);
 
   const hasData = useMemo(() => {
-    return dataKomplain && Object.keys(dataKomplain.jumlahLayanan || {}).length > 0 && Object.keys(dataKomplain.jumlahUnitStatus || {}).length > 0;
-  }, [dataKomplain]);
+    return processedServiceChartData && processedServiceChartData.length > 0 && dataKomplain && Object.keys(dataKomplain.jumlahUnitStatus || {}).length > 0;
+  }, [processedServiceChartData, dataKomplain]);
 
   return (
     <section className="px-4 flex-1 pt-1">
@@ -121,7 +143,7 @@ const DataUnit = () => {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Suspense fallback={<div>Loading Chart...</div>}>
-              <div className="bg-white p-4 rounded-lg shadow">
+              <div className="bg-white p-4 rounded-lg shadow-lg">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-semibold text-sm">Grafik Layanan</h3>
                 </div>
@@ -155,7 +177,7 @@ const DataUnit = () => {
             </Suspense>
 
             <Suspense fallback={<div>Loading Chart...</div>}>
-              <div className="bg-white p-4 rounded-lg shadow">
+              <div className="bg-white p-4 rounded-lg shadow-lg">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-semibold text-sm">Status Komplain</h3>
                 </div>
