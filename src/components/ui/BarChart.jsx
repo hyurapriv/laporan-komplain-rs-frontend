@@ -32,7 +32,7 @@ const BarChart = ({ data }) => {
     const sortedUnits = units.concat(additionalUnits);
 
     const totalComplaints = sortedUnits.map(unit =>
-      Object.values(data[unit].statuses).reduce((acc, count) => acc + count, 0)
+      Object.values(data[unit]?.statuses || {}).reduce((acc, count) => acc + count, 0)
     );
 
     const colors = ['#267db3', '#6dc486', '#fad25e', '#ec6444', '#8561c8', '#E67E22'];
@@ -50,7 +50,6 @@ const BarChart = ({ data }) => {
       }]
     };
   }, [data]);
-
 
   const options = {
     responsive: true,
@@ -120,7 +119,7 @@ const BarChart = ({ data }) => {
   const CustomLegend = () => (
     <div className="flex flex-wrap justify-center mt-4">
       {chartData.labels.map((label, index) => (
-        <div key={index} className="flex items-center mx-7 mb-2"> {/* Increased margin-right */}
+        <div key={index} className="flex items-center mx-7 mb-2">
           <div
             className="w-4 h-4 mr-2"
             style={{ backgroundColor: chartData.datasets[0].backgroundColor[index] }}
@@ -145,4 +144,4 @@ const BarChart = ({ data }) => {
   );
 };
 
-export default BarChart;
+export default React.memo(BarChart);

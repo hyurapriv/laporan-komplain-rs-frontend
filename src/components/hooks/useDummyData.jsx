@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 
 const useDummyData = () => {
@@ -8,6 +8,7 @@ const useDummyData = () => {
     jumlahPetugas: {},
     jumlahUnit: {},
     jumlahUnitStatus: {},
+    jumlahLayanan: {},
     rerataResponTime: { menit: 0, formatted: 'N/A' },
     selectedMonth: '',
     availableMonths: []
@@ -19,8 +20,14 @@ const useDummyData = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('http://localhost:8000/api/komplain-data', { params: { month } });
-      setDataKomplain(response.data);
+      const cachedData = localStorage.getItem(`komplainData-${month}`);
+      if (cachedData) {
+        setDataKomplain(JSON.parse(cachedData));
+      } else {
+        const response = await axios.get('http://localhost:8000/api/komplain-data', { params: { month } });
+        localStorage.setItem(`komplainData-${month}`, JSON.stringify(response.data));
+        setDataKomplain(response.data);
+      }
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Terjadi kesalahan saat mengambil data');
     } finally {
@@ -44,7 +51,15 @@ const useDummyData = () => {
     return date.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
   };
 
-  return { dataKomplain, loading, error, setSelectedMonth, getMonthName };
+  return { 
+    dataKomplain, 
+    loading, 
+    error, 
+    setSelectedMonth, 
+    getMonthName,
+    availableMonths: dataKomplain.availableMonths,
+    selectedMonth: dataKomplain.selectedMonth
+  };
 };
 
 export default useDummyData;

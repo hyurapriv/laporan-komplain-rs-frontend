@@ -11,6 +11,7 @@
     "build:css": "postcss src/index.css -o src/tailwind.css"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.51.23",
     "axios": "^1.7.2",
     "chart.js": "^4.4.3",
     "chartjs-plugin-annotation": "^3.0.1",

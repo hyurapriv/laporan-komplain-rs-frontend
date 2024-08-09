@@ -121,12 +121,9 @@
 
 import React, { useMemo, Suspense, lazy } from 'react';
 import useDummyData from '../hooks/useDummyData';
-// import Card from '../ui/Card';
-// import BarChart from '../ui/BarChart';
 import { IoSendSharp } from "react-icons/io5";
 import { FaTools, FaCheckCircle } from "react-icons/fa";
 import { MdPendingActions, MdOutlineAccessTimeFilled } from "react-icons/md";
-// import Loading from '../ui/Loading';
 import Header from '../layouts/Header';
 
 // Lazy load the components
@@ -153,16 +150,15 @@ const DataKomplain = () => {
       { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-green', value: jumlahStatus.Pending || 0 },
       { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-green', value: rerataResponTime.formatted || 'N/A' },
     ];
-  }, [dataKomplain.jumlahStatus, dataKomplain.rerataResponTime]);
+  }, [dataKomplain]);
 
   // Use useMemo to avoid recalculating hasData unless data changes
   const hasData = useMemo(() => {
     const { totalKomplain, jumlahUnitStatus } = dataKomplain;
     return totalKomplain > 0 && Object.keys(jumlahUnitStatus || {}).length > 0;
-  }, [dataKomplain.totalKomplain, dataKomplain.jumlahUnitStatus]);
+  }, [dataKomplain]);
 
-  // Extract selected month and month name
-  const selectedMonth = useMemo(() => dataKomplain.selectedMonth || '', [dataKomplain.selectedMonth]);
+  const selectedMonth = useMemo(() => dataKomplain.selectedMonth || '', [dataKomplain]);
 
   return (
     <section className='px-4 flex-1 pt-1'>
