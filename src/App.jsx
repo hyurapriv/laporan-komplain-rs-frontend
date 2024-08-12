@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Sidebar from './components/layouts/Sidebar';
-import DataKomplain from './components/pages/DataKomplain';
+import DataKomplain from './components/pages/Komplain';
 import DataKinerja from './components/pages/DataKinerja';
 import DataUnit from './components/pages/DataUnit';
+import PerubahanData from './components/pages/PerubahanData';
+import DataUnitPerubahan from './components/pages/DataUnitPerubahan';
+import DataKinerjaPerubahan from './components/pages/DataKinerjaPerubahan';
 
 function App() {
   const [collapsed, setCollapsed] = useState(false);
@@ -22,6 +25,9 @@ function App() {
               <Route path="/" element={<DataKomplain />} />
               <Route path="/data-unit" element={<DataUnit />} />
               <Route path="/data-kinerja" element={<DataKinerja />} />
+              <Route path="/perubahan-data" element={<PerubahanData />} />
+              <Route path="/perubahan-data/data-unit" element={<DataUnitPerubahan />} />
+              <Route path="/perubahan-data/data-kinerja" element={<DataKinerjaPerubahan />} />
             </Routes>
           </div>
         </main>

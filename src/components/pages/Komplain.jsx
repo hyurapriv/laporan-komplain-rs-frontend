@@ -131,7 +131,7 @@ const Loading = lazy(() => import('../ui/Loading'));
 const Card = lazy(() => import('../ui/Card'));
 const BarChart = lazy(() => import('../ui/BarChart'));
 
-const DataKomplain = () => {
+const Komplain = () => {
   const queryClient = useQueryClient();
   const {
     dataKomplain,
@@ -152,7 +152,7 @@ const DataKomplain = () => {
   const cards = useMemo(() => {
     const { jumlahStatus = {}, rerataResponTime = {} } = dataKomplain || {};
     return [
-      { name: 'Terkirim', icon: <IoSendSharp />, bgColor: 'bg-green', value: jumlahStatus?.Terkirim || 0 },
+      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-green', value: jumlahStatus?.Terkirim || 0 },
       { name: 'Proses', icon: <FaTools />, bgColor: 'bg-green', value: jumlahStatus?.Proses || 0 },
       { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: jumlahStatus?.Selesai || 0 },
       { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-green', value: jumlahStatus?.Pending || 0 },
@@ -176,7 +176,7 @@ const DataKomplain = () => {
   return (
     <section className='px-4 flex-1 pt-1'>
       <Header
-        title={`Data Komplain IT Bulan ${getMonthName(selectedMonth)}`}
+        title={`Laporan Komplain IT Bulan ${getMonthName(selectedMonth)}`}
         selectedMonth={selectedMonth}
         setSelectedMonth={handleMonthChange}
         getMonthName={getMonthName}
@@ -214,4 +214,4 @@ const DataKomplain = () => {
   );
 };
 
-export default React.memo(DataKomplain);
+export default React.memo(Komplain);

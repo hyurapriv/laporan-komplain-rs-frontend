@@ -27,7 +27,7 @@ const Bar = lazy(() => import('react-chartjs-2').then(module => ({ default: modu
 
 // Define color palette for service chart
 const colorPalette = [
-  '#B414EF', '#0FBB98', '#FFCE56', '#A10E48', '#C1F39B', '#2EE4F3', '#577F8A', '#7CFC00', '#8B008B', '#00CED1', '#FF4500', 
+  '#B414EF', '#0FBB98', '#FFCE56', '#A10E48', '#C1F39B', '#2EE4F3', '#577F8A', '#7CFC00', '#8B008B', '#00CED1', '#FF4500',
   '#1E90FF', '#FF1493', '#32CD32', '#FF8C00', '#4169E1', '#8A2BE2', '#C1FDBB'
 ];
 
@@ -55,39 +55,21 @@ const DataUnit = () => {
 
   const [selectedUnit, setSelectedUnit] = useState('');
 
-  console.log('dataKomplain:', dataKomplain);
-  console.log('serviceChartData:', serviceChartData);
-  console.log('loading:', loading);
-  console.log('error:', error);
-
-  const units = useMemo(() => {
-    const unitList = dataKomplain?.jumlahUnitStatus ? Object.keys(dataKomplain.jumlahUnitStatus) : [];
-    console.log('Available units:', unitList);
-    return unitList;
-  }, [dataKomplain]);
-
   useEffect(() => {
+    const units = dataKomplain?.jumlahUnitStatus ? Object.keys(dataKomplain.jumlahUnitStatus) : [];
     if (units.length > 0 && !selectedUnit) {
-      console.log('Setting initial selected unit:', units[0]);
       setSelectedUnit(units[0]);
     }
 
-    // Sort availableMonths in descending order
     const sortedMonths = [...availableMonths].sort((a, b) => new Date(b) - new Date(a));
-    
-    // Set default month to the latest available month if not set
     if (sortedMonths.length > 0 && (!selectedMonth || !sortedMonths.includes(selectedMonth))) {
-      const latestMonth = sortedMonths[0]; // Get the latest available month
-      console.log('Setting initial selected month to the latest available month:', latestMonth);
-      setSelectedMonth(latestMonth);
+      setSelectedMonth(sortedMonths[0]);
     }
-  }, [units, selectedUnit, availableMonths, selectedMonth, setSelectedMonth]);
+  }, [dataKomplain, availableMonths, selectedMonth, selectedUnit, setSelectedMonth]);
 
   const filteredServiceChartData = useMemo(() => {
     if (serviceChartData && selectedUnit) {
-      const filtered = serviceChartData.filter(item => item.unit === selectedUnit);
-      console.log('Filtered service chart data:', filtered);
-      return filtered;
+      return serviceChartData.filter(item => item.unit === selectedUnit);
     }
     return [];
   }, [serviceChartData, selectedUnit]);
@@ -96,7 +78,7 @@ const DataUnit = () => {
     const labels = filteredServiceChartData.map(item => item.layanan);
     const data = filteredServiceChartData.map(item => item.jumlah);
     const backgroundColor = data.map((_, index) => colorPalette[index % colorPalette.length]);
-    
+
     return {
       labels,
       datasets: [{
@@ -110,10 +92,9 @@ const DataUnit = () => {
   const statusChartConfig = useMemo(() => {
     if (dataKomplain?.jumlahUnitStatus && selectedUnit) {
       const statusData = dataKomplain.jumlahUnitStatus[selectedUnit]?.statuses || {};
-      const labels = statusOrder;
-      const data = labels.map(label => statusData[label] || 0);
-      const backgroundColor = labels.map(label => statusColors[label]);
-      
+      const labels = statusOrder.map(status => status === 'Terkirim' ? 'Menunggu' : status);
+    const data = labels.map(label => statusData[label === 'Menunggu' ? 'Terkirim' : label] || 0);
+    const backgroundColor = labels.map(label => statusColors[label === 'Menunggu' ? 'Terkirim' : label]);
       return {
         labels,
         datasets: [{
@@ -123,7 +104,7 @@ const DataUnit = () => {
         }]
       };
     }
-    return { 
+    return {
       labels: statusOrder,
       datasets: [{
         label: 'Jumlah Status',
@@ -133,11 +114,16 @@ const DataUnit = () => {
     };
   }, [dataKomplain, selectedUnit]);
 
+  const totalKomplainForUnit = useMemo(() => {
+    if (dataKomplain?.jumlahUnitStatus && selectedUnit) {
+      return Object.values(dataKomplain.jumlahUnitStatus[selectedUnit]?.statuses || {}).reduce((a, b) => a + b, 0);
+    }
+    return 0;
+  }, [dataKomplain, selectedUnit]);
+
   const hasData = useMemo(() => {
-    const result = serviceChartData && serviceChartData.length > 0 && dataKomplain && Object.keys(dataKomplain.jumlahUnitStatus || {}).length > 0;
-    console.log('hasData:', result);
-    return result;
-  }, [serviceChartData, dataKomplain]);
+    return filteredServiceChartData.length > 0 && dataKomplain?.jumlahUnitStatus;
+  }, [filteredServiceChartData, dataKomplain]);
 
   const chartOptions = {
     responsive: true,
@@ -169,12 +155,15 @@ const DataUnit = () => {
   return (
     <section className="px-4 flex-1 pt-1">
       <Header
-        title={`Data Unit ${selectedUnit || ''} Bulan ${getMonthName(selectedMonth)}`}
+        title={`Laporan Komplain IT Unit ${selectedUnit || ''} Bulan ${getMonthName(selectedMonth)}`}
         selectedMonth={selectedMonth}
         setSelectedMonth={setSelectedMonth}
         getMonthName={getMonthName}
         availableMonths={availableMonths}
       />
+      <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
+        <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain Unit: ${totalKomplainForUnit}`}</span>
+      </h3>
 
       {loading ? (
         <div className="mt-4">
@@ -185,7 +174,7 @@ const DataUnit = () => {
       ) : error ? (
         <div className="mt-4 text-red-500">{error}</div>
       ) : hasData ? (
-        <div className="mt-4">
+        <div className="mt-10">
           <div className="mb-4">
             <label htmlFor="unit-select" className="mr-2">Pilih Unit:</label>
             <select
@@ -194,11 +183,12 @@ const DataUnit = () => {
               onChange={(e) => setSelectedUnit(e.target.value)}
               className="bg-white border border-slate-500 rounded-md p-2"
             >
-              {units.map((unit) => (
+              {Object.keys(dataKomplain.jumlahUnitStatus || {}).map((unit) => (
                 <option key={unit} value={unit}>{unit}</option>
               ))}
             </select>
           </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Suspense fallback={<div>Loading Chart...</div>}>
               <div className="bg-white p-4 rounded-lg shadow-lg">
