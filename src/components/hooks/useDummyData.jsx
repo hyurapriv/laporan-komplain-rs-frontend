@@ -1,87 +1,73 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
+const POLLING_INTERVAL = 30000; // 30 detik
+const STALE_TIME = 25000; // 25 detik
+
+const fetchKomplainData = async (month) => {
+  const cachedData = localStorage.getItem(`komplainData-${month}`);
+  if (cachedData) {
+    return JSON.parse(cachedData);
+  }
+  const response = await axios.get('http://localhost:8000/api/komplain-data', { params: { month } });
+  localStorage.setItem(`komplainData-${month}`, JSON.stringify(response.data));
+  return response.data;
+};
+
+const processServiceData = (data) => {
+  if (!data || !data.jumlahLayanan) return [];
+  return Object.entries(data.jumlahLayanan).flatMap(([unitId, unitData]) =>
+    Object.entries(unitData.layanan).map(([layananName, count]) => ({
+      unit: unitData.unitName,
+      layanan: layananName,
+      jumlah: count
+    }))
+  );
+};
+
 const useDummyData = () => {
-  const [dataKomplain, setDataKomplain] = useState({
-    totalKomplain: 0,
-    jumlahStatus: {},
-    jumlahPetugas: {},
-    jumlahUnit: {},
-    jumlahUnitStatus: {},
-    jumlahLayanan: {},
-    rerataResponTime: { menit: 0, formatted: 'N/A' },
-    selectedMonth: '',
-    availableMonths: []
+  const queryClient = useQueryClient();
+  const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7));
+
+  const { data: dataKomplain, error, isLoading } = useQuery({
+    queryKey: ['komplainData', selectedMonth],
+    queryFn: () => fetchKomplainData(selectedMonth),
+    staleTime: STALE_TIME,
+    refetchInterval: POLLING_INTERVAL,
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const processServiceData = useCallback((data) => {
-    const processedData = [];
-    Object.entries(data).forEach(([unitId, unitData]) => {
-      Object.entries(unitData.layanan).forEach(([layananName, count]) => {
-        processedData.push({
-          unit: unitData.unitName,
-          layanan: layananName,
-          jumlah: count
-        });
-      });
-    });
-    return processedData;
-  }, []);
+  const serviceChartData = useMemo(() => {
+    return processServiceData(dataKomplain);
+  }, [dataKomplain]);
 
-  const fetchKomplainData = useCallback(async (month) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const cachedData = localStorage.getItem(`komplainData-${month}`);
-      if (cachedData) {
-        const parsedData = JSON.parse(cachedData);
-        setDataKomplain({
-          ...parsedData,
-          serviceChartData: processServiceData(parsedData.jumlahLayanan)
-        });
-      } else {
-        const response = await axios.get('http://localhost:8000/api/komplain-data', { params: { month } });
-        const processedData = {
-          ...response.data,
-          serviceChartData: processServiceData(response.data.jumlahLayanan)
-        };
-        localStorage.setItem(`komplainData-${month}`, JSON.stringify(processedData));
-        setDataKomplain(processedData);
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Terjadi kesalahan saat mengambil data');
-    } finally {
-      setLoading(false);
-    }
-  }, [processServiceData]);
-
-  useEffect(() => {
-    const currentMonth = new Date().toISOString().slice(0, 7); // Format: YYYY-MM
-    fetchKomplainData(currentMonth);
-  }, [fetchKomplainData]);
-
-  const setSelectedMonth = (month) => {
-    fetchKomplainData(month);
-  };
-
-  const getMonthName = (yearMonth) => {
+  const getMonthName = useCallback((yearMonth) => {
     if (!yearMonth) return 'N/A';
     const [year, month] = yearMonth.split('-');
-    const date = new Date(year, parseInt(month) - 1);
-    return date.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
-  };
+    return new Date(year, parseInt(month) - 1).toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+  }, []);
+
+  const setSelectedMonthAndFetch = useCallback((month) => {
+    setSelectedMonth(month);
+    queryClient.prefetchQuery({
+      queryKey: ['komplainData', month],
+      queryFn: () => fetchKomplainData(month)
+    });
+  }, [queryClient]);
+
+  const availableMonths = useMemo(() => {
+    return dataKomplain?.availableMonths || [];
+  }, [dataKomplain]);
 
   return {
     dataKomplain,
-    loading,
+    loading: isLoading,
     error,
-    setSelectedMonth,
+    setSelectedMonth: setSelectedMonthAndFetch,
     getMonthName,
-    availableMonths: dataKomplain.availableMonths,
-    selectedMonth: dataKomplain.selectedMonth,
-    serviceChartData: dataKomplain.serviceChartData // Tambahkan ini
+    availableMonths,
+    selectedMonth,
+    serviceChartData
   };
 };
 

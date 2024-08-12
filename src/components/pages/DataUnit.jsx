@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import useDummyData from '../hooks/useDummyData';
 import Header from '../layouts/Header';
 import {
@@ -33,18 +33,15 @@ const colorPalette = [
 
 // Define status colors and order
 const statusColors = {
-  'Terkirim': '#36A2EB',  // Blue
-  'Proses': '#F79D23',    // Yellow
-  'Selesai': '#32CD32',   // Green
-  'Pending': '#A70B17'    // Orange
+  'Terkirim': '#36A2EB',
+  'Proses': '#F79D23',
+  'Selesai': '#32CD32',
+  'Pending': '#A70B17'
 };
 
 const statusOrder = ['Terkirim', 'Proses', 'Selesai', 'Pending'];
 
 const DataUnit = () => {
-  const [serviceChartData, setServiceChartData] = useState({ labels: [], datasets: [] });
-  const [statusChartData, setStatusChartData] = useState({ labels: [], datasets: [] });
-  const [selectedUnit, setSelectedUnit] = useState('');
   const {
     dataKomplain,
     setSelectedMonth,
@@ -53,65 +50,126 @@ const DataUnit = () => {
     getMonthName,
     error,
     loading,
-    serviceChartData: processedServiceChartData
+    serviceChartData
   } = useDummyData();
 
+  const [selectedUnit, setSelectedUnit] = useState('');
+
+  console.log('dataKomplain:', dataKomplain);
+  console.log('serviceChartData:', serviceChartData);
+  console.log('loading:', loading);
+  console.log('error:', error);
+
   const units = useMemo(() => {
-    return dataKomplain?.jumlahUnitStatus ? Object.keys(dataKomplain.jumlahUnitStatus) : [];
+    const unitList = dataKomplain?.jumlahUnitStatus ? Object.keys(dataKomplain.jumlahUnitStatus) : [];
+    console.log('Available units:', unitList);
+    return unitList;
   }, [dataKomplain]);
-
-  const updateChartData = useCallback(() => {
-    if (processedServiceChartData && selectedUnit) {
-      const filteredData = processedServiceChartData.filter(item => item.unit === selectedUnit);
-      const labels = filteredData.map(item => item.layanan);
-      const data = filteredData.map(item => item.jumlah);
-      const backgroundColor = data.map((_, index) => colorPalette[index % colorPalette.length]);
-      
-      const datasets = [
-        {
-          label: 'Jumlah Komplain',
-          data: data,
-          backgroundColor: backgroundColor,
-        },
-      ];
-      setServiceChartData({ labels, datasets });
-    }
-
-    if (dataKomplain && dataKomplain.jumlahUnitStatus && selectedUnit) {
-      const statusData = dataKomplain.jumlahUnitStatus[selectedUnit]?.statuses || {};
-      const orderedLabels = statusOrder.filter(status => statusData.hasOwnProperty(status));
-      const data = orderedLabels.map(label => statusData[label]);
-      const backgroundColor = orderedLabels.map(label => statusColors[label]);
-      
-      const datasets = [
-        {
-          label: 'Jumlah Status',
-          data: data,
-          backgroundColor: backgroundColor,
-        },
-      ];
-      setStatusChartData({ labels: orderedLabels, datasets });
-    }
-  }, [dataKomplain, selectedUnit, processedServiceChartData]);
-
-  useEffect(() => {
-    updateChartData();
-  }, [updateChartData]);
 
   useEffect(() => {
     if (units.length > 0 && !selectedUnit) {
+      console.log('Setting initial selected unit:', units[0]);
       setSelectedUnit(units[0]);
     }
-  }, [units, selectedUnit]);
+
+    // Sort availableMonths in descending order
+    const sortedMonths = [...availableMonths].sort((a, b) => new Date(b) - new Date(a));
+    
+    // Set default month to the latest available month if not set
+    if (sortedMonths.length > 0 && (!selectedMonth || !sortedMonths.includes(selectedMonth))) {
+      const latestMonth = sortedMonths[0]; // Get the latest available month
+      console.log('Setting initial selected month to the latest available month:', latestMonth);
+      setSelectedMonth(latestMonth);
+    }
+  }, [units, selectedUnit, availableMonths, selectedMonth, setSelectedMonth]);
+
+  const filteredServiceChartData = useMemo(() => {
+    if (serviceChartData && selectedUnit) {
+      const filtered = serviceChartData.filter(item => item.unit === selectedUnit);
+      console.log('Filtered service chart data:', filtered);
+      return filtered;
+    }
+    return [];
+  }, [serviceChartData, selectedUnit]);
+
+  const serviceChartConfig = useMemo(() => {
+    const labels = filteredServiceChartData.map(item => item.layanan);
+    const data = filteredServiceChartData.map(item => item.jumlah);
+    const backgroundColor = data.map((_, index) => colorPalette[index % colorPalette.length]);
+    
+    return {
+      labels,
+      datasets: [{
+        label: 'Jumlah Komplain',
+        data,
+        backgroundColor,
+      }]
+    };
+  }, [filteredServiceChartData]);
+
+  const statusChartConfig = useMemo(() => {
+    if (dataKomplain?.jumlahUnitStatus && selectedUnit) {
+      const statusData = dataKomplain.jumlahUnitStatus[selectedUnit]?.statuses || {};
+      const labels = statusOrder;
+      const data = labels.map(label => statusData[label] || 0);
+      const backgroundColor = labels.map(label => statusColors[label]);
+      
+      return {
+        labels,
+        datasets: [{
+          label: 'Jumlah Status',
+          data,
+          backgroundColor,
+        }]
+      };
+    }
+    return { 
+      labels: statusOrder,
+      datasets: [{
+        label: 'Jumlah Status',
+        data: statusOrder.map(() => 0),
+        backgroundColor: statusOrder.map(label => statusColors[label]),
+      }]
+    };
+  }, [dataKomplain, selectedUnit]);
 
   const hasData = useMemo(() => {
-    return processedServiceChartData && processedServiceChartData.length > 0 && dataKomplain && Object.keys(dataKomplain.jumlahUnitStatus || {}).length > 0;
-  }, [processedServiceChartData, dataKomplain]);
+    const result = serviceChartData && serviceChartData.length > 0 && dataKomplain && Object.keys(dataKomplain.jumlahUnitStatus || {}).length > 0;
+    console.log('hasData:', result);
+    return result;
+  }, [serviceChartData, dataKomplain]);
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          font: {
+            size: 10,
+          },
+        },
+      },
+      x: {
+        ticks: {
+          font: {
+            size: 10,
+          },
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+  };
 
   return (
     <section className="px-4 flex-1 pt-1">
       <Header
-        title="Data Unit"
+        title={`Data Unit ${selectedUnit || ''} Bulan ${getMonthName(selectedMonth)}`}
         selectedMonth={selectedMonth}
         setSelectedMonth={setSelectedMonth}
         getMonthName={getMonthName}
@@ -148,30 +206,11 @@ const DataUnit = () => {
                   <h3 className="font-semibold text-sm">Grafik Layanan</h3>
                 </div>
                 <div style={{ width: '100%', height: 300 }}>
-                  <Bar
-                    data={serviceChartData}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      scales: {
-                        y: {
-                          beginAtZero: true,
-                          ticks: {
-                            font: {
-                              size: 10,
-                            },
-                          },
-                        },
-                        x: {
-                          ticks: {
-                            font: {
-                              size: 10,
-                            },
-                          },
-                        },
-                      },
-                    }}
-                  />
+                  {filteredServiceChartData.length > 0 ? (
+                    <Bar data={serviceChartConfig} options={chartOptions} />
+                  ) : (
+                    <p>No data available for the selected unit</p>
+                  )}
                 </div>
               </div>
             </Suspense>
@@ -182,30 +221,11 @@ const DataUnit = () => {
                   <h3 className="font-semibold text-sm">Status Komplain</h3>
                 </div>
                 <div style={{ width: '100%', height: 300 }}>
-                  <Bar
-                    data={statusChartData}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      scales: {
-                        y: {
-                          beginAtZero: true,
-                          ticks: {
-                            font: {
-                              size: 10,
-                            },
-                          },
-                        },
-                        x: {
-                          ticks: {
-                            font: {
-                              size: 10,
-                            },
-                          },
-                        },
-                      },
-                    }}
-                  />
+                  {statusChartConfig.datasets[0]?.data.length > 0 ? (
+                    <Bar data={statusChartConfig} options={chartOptions} />
+                  ) : (
+                    <p>No status data available for the selected unit</p>
+                  )}
                 </div>
               </div>
             </Suspense>

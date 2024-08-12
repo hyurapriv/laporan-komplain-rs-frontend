@@ -120,81 +120,88 @@
 // export default DataKomplain;
 
 import React, { useMemo, Suspense, lazy } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import useDummyData from '../hooks/useDummyData';
 import { IoSendSharp } from "react-icons/io5";
 import { FaTools, FaCheckCircle } from "react-icons/fa";
 import { MdPendingActions, MdOutlineAccessTimeFilled } from "react-icons/md";
 import Header from '../layouts/Header';
 
-// Lazy load the components
 const Loading = lazy(() => import('../ui/Loading'));
 const Card = lazy(() => import('../ui/Card'));
 const BarChart = lazy(() => import('../ui/BarChart'));
 
 const DataKomplain = () => {
+  const queryClient = useQueryClient();
   const {
     dataKomplain,
     error,
     loading,
     setSelectedMonth,
     getMonthName,
+    selectedMonth,
   } = useDummyData();
 
-  // Use useMemo to prevent recalculating cards array unless data changes
+  // Ensure selectedMonth is within the available months
+  React.useEffect(() => {
+    if (dataKomplain?.availableMonths && !dataKomplain.availableMonths.includes(selectedMonth)) {
+      setSelectedMonth(dataKomplain.availableMonths[0]); // Set to the first available month if current month is not available
+    }
+  }, [dataKomplain, selectedMonth, setSelectedMonth]);
+
   const cards = useMemo(() => {
-    const { jumlahStatus = {}, rerataResponTime = {} } = dataKomplain;
+    const { jumlahStatus = {}, rerataResponTime = {} } = dataKomplain || {};
     return [
-      { name: 'Terkirim', icon: <IoSendSharp />, bgColor: 'bg-green', value: jumlahStatus.Terkirim || 0 },
-      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-green', value: jumlahStatus.Proses || 0 },
-      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: jumlahStatus.Selesai || 0 },
-      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-green', value: jumlahStatus.Pending || 0 },
-      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-green', value: rerataResponTime.formatted || 'N/A' },
+      { name: 'Terkirim', icon: <IoSendSharp />, bgColor: 'bg-green', value: jumlahStatus?.Terkirim || 0 },
+      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-green', value: jumlahStatus?.Proses || 0 },
+      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: jumlahStatus?.Selesai || 0 },
+      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-green', value: jumlahStatus?.Pending || 0 },
+      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-green', value: rerataResponTime?.formatted || 'N/A' },
     ];
   }, [dataKomplain]);
 
-  // Use useMemo to avoid recalculating hasData unless data changes
   const hasData = useMemo(() => {
-    const { totalKomplain, jumlahUnitStatus } = dataKomplain;
+    const { totalKomplain, jumlahUnitStatus } = dataKomplain || {};
     return totalKomplain > 0 && Object.keys(jumlahUnitStatus || {}).length > 0;
   }, [dataKomplain]);
 
-  const selectedMonth = useMemo(() => dataKomplain.selectedMonth || '', [dataKomplain]);
+  const handleMonthChange = (newMonth) => {
+    setSelectedMonth(newMonth);
+    queryClient.prefetchQuery({
+      queryKey: ['komplainData', newMonth],
+      queryFn: () => fetchKomplainData(newMonth)
+    });
+  };
 
   return (
     <section className='px-4 flex-1 pt-1'>
       <Header
         title={`Data Komplain IT Bulan ${getMonthName(selectedMonth)}`}
         selectedMonth={selectedMonth}
-        setSelectedMonth={setSelectedMonth}
+        setSelectedMonth={handleMonthChange}
         getMonthName={getMonthName}
-        availableMonths={dataKomplain.availableMonths}
+        availableMonths={dataKomplain?.availableMonths || []}
       />
       <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
-        <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${dataKomplain.totalKomplain || 0}`}</span>
+        <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${dataKomplain?.totalKomplain || 0}`}</span>
       </h3>
       {loading ? (
         <Suspense fallback={<div>Loading...</div>}>
           <Loading />
         </Suspense>
       ) : error ? (
-        <div className="text-red-500">{error}</div>
+        <div className="text-red-500">{error.message || 'An error occurred'}</div>
       ) : hasData ? (
         <>
           <div className='grid grid-cols-5 gap-4 mt-14'>
             <Suspense fallback={<div>Loading Cards...</div>}>
               {cards.map((card, index) => (
-                <Card
-                  key={index}
-                  name={card.name}
-                  icon={card.icon}
-                  bgColor={card.bgColor}
-                  value={card.value}
-                />
+                <Card key={index} {...card} />
               ))}
             </Suspense>
           </div>
           <Suspense fallback={<div>Loading Chart...</div>}>
-            {dataKomplain.jumlahUnitStatus && <BarChart data={dataKomplain.jumlahUnitStatus} />}
+            {dataKomplain?.jumlahUnitStatus && <BarChart data={dataKomplain.jumlahUnitStatus} />}
           </Suspense>
         </>
       ) : (
