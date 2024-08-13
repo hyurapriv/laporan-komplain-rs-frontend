@@ -1,20 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from '../../assets/logo.png';
-import { FaChartSimple } from "react-icons/fa6";
+import { FaChartSimple, FaScrewdriverWrench } from "react-icons/fa6";
 import { BsPersonWorkspace } from "react-icons/bs";
 import { MdDoubleArrow, MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";
 import { GiFirstAidKit } from "react-icons/gi";
+import { FaFileUpload } from "react-icons/fa";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const location = useLocation();
-  const [openMenu, setOpenMenu] = useState('');
+  const [openMenu, setOpenMenu] = useState(() => {
+    // Get the stored open menu from localStorage or default to an empty string
+    return localStorage.getItem('openMenu') || '';
+  });
+
+  useEffect(() => {
+    // Store the open menu state in localStorage whenever it changes
+    localStorage.setItem('openMenu', openMenu);
+  }, [openMenu]);
 
   const mainMenuItems = [
-    { name: 'Data Komplain IT', icon: <FaChartSimple />, path: '/' },
+    { name: 'Data Komplain IT', icon: <FaScrewdriverWrench />, path: '/' },
     { 
       name: ['Permintaan', 'Update Data IT'], 
-      icon: <FaChartSimple />, 
+      icon: <FaFileUpload />, 
       path: '/perubahan-data',
       isTwoLines: true 
     }

@@ -1,29 +1,20 @@
-import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import useDummyData from '../hooks/useDummyData';
 import Header from '../layouts/Header';
 import {
   Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  BarElement,
   CategoryScale,
   LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
 } from 'chart.js';
+import { Bar, Pie } from 'react-chartjs-2';
+import Loading from '../ui/Loading';
 
 // Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-// Lazy load the components
-const Loading = lazy(() => import('../ui/Loading'));
-const Bar = lazy(() => import('react-chartjs-2').then(module => ({ default: module.Bar })));
+ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
 // Define color palette for service chart
 const colorPalette = [
@@ -36,10 +27,19 @@ const statusColors = {
   'Terkirim': '#36A2EB',
   'Proses': '#F79D23',
   'Selesai': '#32CD32',
-  'Pending': '#A70B17'
+  'Pending': '#3E5F8A'
 };
 
 const statusOrder = ['Terkirim', 'Proses', 'Selesai', 'Pending'];
+
+const unitOrder = [
+  'Rawat Jalan',
+  'Rawat Inap/Rawat Inap Khusus',
+  'IGD',
+  'Penunjang Medis',
+  'Penunjang Non-Medis',
+  'IBS'
+];
 
 const DataUnit = () => {
   const {
@@ -50,30 +50,51 @@ const DataUnit = () => {
     getMonthName,
     error,
     loading,
-    serviceChartData
+    serviceChartDataKomplain
   } = useDummyData();
 
   const [selectedUnit, setSelectedUnit] = useState('');
 
+  // Set default month to August if available
+  useEffect(() => {
+    if (!selectedMonth) {
+      const augustMonth = availableMonths.find(month => month === '2024-08');
+      if (augustMonth) {
+        setSelectedMonth(augustMonth);
+      } else if (availableMonths.length > 0) {
+        setSelectedMonth(availableMonths[0]); // Default to the first available month
+      }
+    }
+  }, [availableMonths, selectedMonth, setSelectedMonth]);
+
+  // Set default unit if not selected
   useEffect(() => {
     const units = dataKomplain?.jumlahUnitStatus ? Object.keys(dataKomplain.jumlahUnitStatus) : [];
     if (units.length > 0 && !selectedUnit) {
       setSelectedUnit(units[0]);
     }
+  }, [dataKomplain, selectedUnit]);
 
-    const sortedMonths = [...availableMonths].sort((a, b) => new Date(b) - new Date(a));
-    if (sortedMonths.length > 0 && (!selectedMonth || !sortedMonths.includes(selectedMonth))) {
-      setSelectedMonth(sortedMonths[0]);
+  useEffect(() => {
+    if (dataKomplain?.jumlahUnitStatus) {
+      // Set default selected unit based on order
+      const units = Object.keys(dataKomplain.jumlahUnitStatus);
+      const firstAvailableUnit = unitOrder.find(unit => units.includes(unit));
+      if (firstAvailableUnit && !selectedUnit) {
+        setSelectedUnit(firstAvailableUnit);
+      }
     }
-  }, [dataKomplain, availableMonths, selectedMonth, selectedUnit, setSelectedMonth]);
+  }, [dataKomplain, selectedUnit]);
 
+  // Filter service chart data based on selected unit
   const filteredServiceChartData = useMemo(() => {
-    if (serviceChartData && selectedUnit) {
-      return serviceChartData.filter(item => item.unit === selectedUnit);
+    if (serviceChartDataKomplain && selectedUnit) {
+      return serviceChartDataKomplain.filter(item => item.unit === selectedUnit);
     }
     return [];
-  }, [serviceChartData, selectedUnit]);
+  }, [serviceChartDataKomplain, selectedUnit]);
 
+  // Configure service chart
   const serviceChartConfig = useMemo(() => {
     const labels = filteredServiceChartData.map(item => item.layanan);
     const data = filteredServiceChartData.map(item => item.jumlah);
@@ -89,12 +110,13 @@ const DataUnit = () => {
     };
   }, [filteredServiceChartData]);
 
+  // Configure status chart
   const statusChartConfig = useMemo(() => {
     if (dataKomplain?.jumlahUnitStatus && selectedUnit) {
       const statusData = dataKomplain.jumlahUnitStatus[selectedUnit]?.statuses || {};
       const labels = statusOrder.map(status => status === 'Terkirim' ? 'Menunggu' : status);
-    const data = labels.map(label => statusData[label === 'Menunggu' ? 'Terkirim' : label] || 0);
-    const backgroundColor = labels.map(label => statusColors[label === 'Menunggu' ? 'Terkirim' : label]);
+      const data = labels.map(label => statusData[label === 'Menunggu' ? 'Terkirim' : label] || 0);
+      const backgroundColor = labels.map(label => statusColors[label === 'Menunggu' ? 'Terkirim' : label]);
       return {
         labels,
         datasets: [{
@@ -114,6 +136,7 @@ const DataUnit = () => {
     };
   }, [dataKomplain, selectedUnit]);
 
+  // Calculate total complaints for the selected unit
   const totalKomplainForUnit = useMemo(() => {
     if (dataKomplain?.jumlahUnitStatus && selectedUnit) {
       return Object.values(dataKomplain.jumlahUnitStatus[selectedUnit]?.statuses || {}).reduce((a, b) => a + b, 0);
@@ -121,36 +144,90 @@ const DataUnit = () => {
     return 0;
   }, [dataKomplain, selectedUnit]);
 
+  // Check if there is data for charts
   const hasData = useMemo(() => {
     return filteredServiceChartData.length > 0 && dataKomplain?.jumlahUnitStatus;
   }, [filteredServiceChartData, dataKomplain]);
 
-  const chartOptions = {
+  // Chart options
+  const horizontalBarOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          font: {
-            size: 10,
-          },
-        },
-      },
-      x: {
-        ticks: {
-          font: {
-            size: 10,
-          },
-        },
-      },
-    },
+    indexAxis: 'y',
     plugins: {
       legend: {
         display: false,
       },
+      tooltip: {
+        callbacks: {
+          label: (context) => `${context.label}: ${context.raw}`
+        }
+      }
     },
+    scales: {
+      x: {
+        ticks: {
+          autoSkip: false,
+          maxRotation: 0,
+          minRotation: 0
+        }
+      },
+      y: {
+        ticks: {
+          autoSkip: false,
+          maxRotation: 0,
+          minRotation: 0
+        }
+      }
+    },
+    elements: {
+      bar: {
+        borderWidth: 1,
+        borderColor: '#fff',
+        borderRadius: 1,
+      }
+    }
   };
+
+  const pieChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: (context) => `${context.label}: ${context.raw}`
+        }
+      },
+      legend: {
+        display: true,
+        position: 'bottom',
+        labels: {
+          boxWidth: 14,
+          padding: 10,
+          font: {
+            size: 12
+          }
+        }
+      }
+    },
+    rotation: Math.PI * -0.5,
+    cutout: '50%',
+  };
+
+  // Loading and Error Handling
+  if (loading) {
+    return (
+      <div className="mt-4">
+        <Suspense fallback={<div>Loading...</div>}>
+          <Loading />
+        </Suspense>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="mt-4 text-red-500">{error.message || 'An error occurred'}</div>;
+  }
 
   return (
     <section className="px-4 flex-1 pt-1">
@@ -162,20 +239,12 @@ const DataUnit = () => {
         availableMonths={availableMonths}
       />
       <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
-        <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain Unit: ${totalKomplainForUnit}`}</span>
+        <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${totalKomplainForUnit}`}</span>
       </h3>
 
-      {loading ? (
-        <div className="mt-4">
-          <Suspense fallback={<div>Loading...</div>}>
-            <Loading />
-          </Suspense>
-        </div>
-      ) : error ? (
-        <div className="mt-4 text-red-500">{error}</div>
-      ) : hasData ? (
-        <div className="mt-10">
-          <div className="mb-4">
+      {hasData ? (
+        <div className="mt-6">
+          <div className="mb-8">
             <label htmlFor="unit-select" className="mr-2">Pilih Unit:</label>
             <select
               id="unit-select"
@@ -183,7 +252,7 @@ const DataUnit = () => {
               onChange={(e) => setSelectedUnit(e.target.value)}
               className="bg-white border border-slate-500 rounded-md p-2"
             >
-              {Object.keys(dataKomplain.jumlahUnitStatus || {}).map((unit) => (
+              {unitOrder.map((unit) => (
                 <option key={unit} value={unit}>{unit}</option>
               ))}
             </select>
@@ -197,24 +266,22 @@ const DataUnit = () => {
                 </div>
                 <div style={{ width: '100%', height: 300 }}>
                   {filteredServiceChartData.length > 0 ? (
-                    <Bar data={serviceChartConfig} options={chartOptions} />
+                    <Bar data={serviceChartConfig} options={horizontalBarOptions} />
                   ) : (
                     <p>No data available for the selected unit</p>
                   )}
                 </div>
               </div>
-            </Suspense>
 
-            <Suspense fallback={<div>Loading Chart...</div>}>
               <div className="bg-white p-4 rounded-lg shadow-lg">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-sm">Status Komplain</h3>
+                  <h3 className="font-semibold text-sm">Grafik Status</h3>
                 </div>
                 <div style={{ width: '100%', height: 300 }}>
-                  {statusChartConfig.datasets[0]?.data.length > 0 ? (
-                    <Bar data={statusChartConfig} options={chartOptions} />
+                  {Object.keys(statusChartConfig.datasets[0].data).length > 0 ? (
+                    <Pie data={statusChartConfig} options={pieChartOptions} />
                   ) : (
-                    <p>No status data available for the selected unit</p>
+                    <p>No data available for the selected unit</p>
                   )}
                 </div>
               </div>
@@ -222,13 +289,10 @@ const DataUnit = () => {
           </div>
         </div>
       ) : (
-        <div className="mt-14 text-center text-gray-600">
-          <p className="text-xl">Tidak ada data untuk unit yang dipilih pada bulan ini.</p>
-          <p className="mt-2">Silakan pilih unit atau bulan lain atau periksa kembali data Anda.</p>
-        </div>
+        <p className="mt-4 text-gray-500">No data available for the selected month and unit.</p>
       )}
     </section>
   );
 };
 
-export default React.memo(DataUnit);
+export default DataUnit;

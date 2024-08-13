@@ -140,12 +140,12 @@ const Komplain = () => {
     setSelectedMonth,
     getMonthName,
     selectedMonth,
+    averageResponseTimeData
   } = useDummyData();
 
-  // Ensure selectedMonth is within the available months
   React.useEffect(() => {
     if (dataKomplain?.availableMonths && !dataKomplain.availableMonths.includes(selectedMonth)) {
-      setSelectedMonth(dataKomplain.availableMonths[0]); // Set to the first available month if current month is not available
+      setSelectedMonth(dataKomplain.availableMonths[0]);
     }
   }, [dataKomplain, selectedMonth, setSelectedMonth]);
 
@@ -200,7 +200,7 @@ const Komplain = () => {
               ))}
             </Suspense>
           </div>
-          <Suspense fallback={<div>Loading Chart...</div>}>
+          <Suspense fallback={<div>Loading Bar Chart...</div>}>
             {dataKomplain?.jumlahUnitStatus && <BarChart data={dataKomplain.jumlahUnitStatus} />}
           </Suspense>
         </>

@@ -2,9 +2,8 @@ import React from 'react';
 
 export const Tables = ({ data }) => {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white border border-gray-300 ">
-        <caption className="text-lg font-bold my-4">Tabel Kinerja Petugas</caption>
+    <div className='mt-12'>
+      <table className="min-w-full bg-white border border-gray-300 overflow-x-auto shadow-xl">
         <thead>
           <tr className="bg-light-green text-white">
             <th className="border px-4 py-2">No</th>
