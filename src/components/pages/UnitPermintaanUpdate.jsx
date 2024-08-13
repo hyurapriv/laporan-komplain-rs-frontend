@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import useDummyData from '../hooks/useDummyData';
 import Header from '../layouts/Header';
 import {
@@ -12,6 +12,7 @@ import {
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
 import Loading from '../ui/Loading';
+import Footer from '../layouts/Footer';
 
 // Register Chart.js components
 ChartJS.register(
@@ -126,19 +127,20 @@ const UnitPermintaanUpdate = () => {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    indexAxis: 'y', // Set indexAxis to 'y' for horizontal bars
     scales: {
-      y: {
+      x: {
         beginAtZero: true,
         ticks: {
           font: {
-            size: 10,
+            size: 11,
           },
         },
       },
-      x: {
+      y: {
         ticks: {
           font: {
-            size: 10,
+            size: 11,
           },
         },
       },
@@ -176,78 +178,79 @@ const UnitPermintaanUpdate = () => {
   };
 
   return (
-    <section className="px-4 flex-1 pt-1">
-      <Header
-        title={`Laporan Permintaan Update Data Unit ${selectedUnit || ''} Bulan ${getMonthName(selectedMonth)}`}
-        selectedMonth={selectedMonth}
-        setSelectedMonth={setSelectedMonth}
-        getMonthName={getMonthName}
-        availableMonths={availableMonths}
-      />
-      <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
-        <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan Update Data: ${totalUpdateForUnit}`}</span>
-      </h3>
+    <>
+      <section className="px-4 flex-1 pt-1">
+        <Header
+          title={`Laporan Permintaan Update Data Unit ${selectedUnit || ''} Bulan ${getMonthName(selectedMonth)}`}
+          selectedMonth={selectedMonth}
+          setSelectedMonth={setSelectedMonth}
+          getMonthName={getMonthName}
+          availableMonths={availableMonths}
+        />
+        <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
+          <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan Update Data: ${totalUpdateForUnit}`}</span>
+        </h3>
 
-      {loading ? (
-        <div className="mt-4">
-          <Suspense fallback={<div>Loading...</div>}>
-            <Loading />
-          </Suspense>
-        </div>
-      ) : error ? (
-        <div className="mt-4 text-red-500">{error}</div>
-      ) : hasData ? (
-        <div className="mt-6">
-          <div className="mb-8">
-            <label htmlFor="unit-select" className="mr-2">Pilih Unit:</label>
-            <select
-              id="unit-select"
-              value={selectedUnit}
-              onChange={(e) => setSelectedUnit(e.target.value)}
-              className="bg-white border border-slate-500 rounded-md p-2"
-            >
-              {Object.keys(dataUpdate.jumlahUnitStatus || {}).map((unit) => (
-                <option key={unit} value={unit}>{unit}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Suspense fallback={<div>Loading Chart...</div>}>
-              <div className="bg-white p-4 rounded-lg shadow-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-sm">Grafik Layanan</h3>
-                </div>
-                <div style={{ width: '100%', height: 300 }}>
-                  {filteredServiceChartData.length > 0 ? (
-                    <Bar data={serviceChartConfig} options={chartOptions} />
-                  ) : (
-                    <p>No data available for the selected unit</p>
-                  )}
-                </div>
-              </div>
-            </Suspense>
-
-            <Suspense fallback={<div>Loading Chart...</div>}>
-              <div className="bg-white p-4 rounded-lg shadow-lg relative">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-sm">Distribusi Status Permintaan Update</h3>
-                </div>
-                <div style={{ width: '100%', height: 300 }}>
-                  {dataUpdate?.jumlahUnitStatus ? (
-                    <Pie data={statusChartConfig} options={pieChartOptions} />
-                  ) : (
-                    <p>No data available for the selected unit</p>
-                  )}
-                </div>
-              </div>
+        {loading ? (
+          <div className="mt-4">
+            <Suspense fallback={<div>Loading...</div>}>
+              <Loading />
             </Suspense>
           </div>
-        </div>
-      ) : (
-        <div className="mt-4 text-gray-500">No data available.</div>
-      )}
-    </section>
+        ) : error ? (
+          <div className="mt-4 text-red-500">{error}</div>
+        ) : hasData ? (
+          <div className="mt-6">
+            <div className="mb-8">
+              <label htmlFor="unit-select" className="mr-2">Pilih Unit:</label>
+              <select
+                id="unit-select"
+                value={selectedUnit}
+                onChange={(e) => setSelectedUnit(e.target.value)}
+                className="bg-white border border-slate-500 rounded-md p-2"
+              >
+                {Object.keys(dataUpdate.jumlahUnitStatus || {}).map((unit) => (
+                  <option key={unit} value={unit}>{unit}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Suspense fallback={<div>Loading Chart...</div>}>
+                <div className="bg-white p-4 rounded-lg shadow-lg">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold text-sm">{`Grafik Unit: ${selectedUnit}`}</h3>
+                  </div>
+                  <div style={{ width: '100%', height: 300 }}>
+                    {filteredServiceChartData.length > 0 ? (
+                      <Bar data={serviceChartConfig} options={chartOptions} />
+                    ) : (
+                      <p>No data available for the selected unit</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-lg shadow-lg">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold text-sm">{`Grafik Status Unit: ${selectedUnit}`}</h3>
+                  </div>
+                  <div style={{ width: '100%', height: 300 }}>
+                    {Object.keys(statusChartConfig.datasets[0].data).length > 0 ? (
+                      <Pie data={statusChartConfig} options={pieChartOptions} />
+                    ) : (
+                      <p>No data available for the selected unit</p>
+                    )}
+                  </div>
+                </div>
+              </Suspense>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-4 text-gray-500">No data available for the selected month and unit.</p>
+        )}
+      </section>
+      <Footer />
+    </>
   );
 };
 

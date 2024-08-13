@@ -13,6 +13,7 @@ import useDummyData from '../hooks/useDummyData';
 import Header from '../layouts/Header';
 import Loading from '../ui/Loading';
 import { Tables } from '../ui/Tables';
+import Footer from '../layouts/Footer';
 
 // Register Chart.js components
 ChartJS.register(
@@ -131,62 +132,64 @@ const DataKinerja = () => {
   }
 
   return (
-    <div className='px-4 flex-1 pt-1 mb-5'>
-      <Header
-        title={`Laporan Kinerja Petugas Bulan ${getMonthName(dataKomplain.selectedMonth)}`}
-        selectedMonth={dataKomplain.selectedMonth}
-        setSelectedMonth={setSelectedMonth}
-        getMonthName={getMonthName}
-        availableMonths={dataKomplain.availableMonths}
-      />
-      <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
-        <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${totalComplaints}`}</span>
-      </h3>
-      
-      <div className="mt-10">
-        <div className="flex justify-between gap-6 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow-lg flex-1">
-            <h3 className="font-semibold text-sm mb-4">Perbandingan Pengerjaan Petugas</h3>
-            <div style={{ width: '100%', height: 300 }}>
-              <Bar data={barChartConfig} options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: {
-                      font: {
-                        size: 10,
-                      },
-                    },
-                  },
-                  x: {
-                    ticks: {
-                      font: {
-                        size: 10,
-                      },
-                    },
-                  },
-                },
-                plugins: {
-                  legend: {
-                    display: false,
-                  },
-                },
-              }} />
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-lg flex-1">
-            <h3 className="font-semibold text-sm mb-4">Kontribusi Petugas</h3>
-            <div style={{ width: '100%', height: 300 }}>
-              <Pie data={pieChartConfig} options={pieChartOptions} />
-            </div>
-          </div>
-        </div>
+    <>
+      <div className='px-4 flex-1 pt-1 mb-5'>
+        <Header
+          title={`Laporan Kinerja Petugas Bulan ${getMonthName(dataKomplain.selectedMonth)}`}
+          selectedMonth={dataKomplain.selectedMonth}
+          setSelectedMonth={setSelectedMonth}
+          getMonthName={getMonthName}
+          availableMonths={dataKomplain.availableMonths}
+        />
+        <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
+          <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${totalComplaints}`}</span>
+        </h3>
 
-        <Tables data={tableData} />
+        <div className="mt-10">
+          <div className="flex justify-between gap-6 mb-6">
+            <div className="bg-white p-4 rounded-lg shadow-lg flex-1">
+              <h3 className="font-semibold text-sm mb-4">Grafik Kinerja Petugas</h3>
+              <div style={{ width: '100%', height: 300 }}>
+                <Bar data={barChartConfig} options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: {
+                        font: {
+                          size: 10,
+                        },
+                      },
+                    },
+                    x: {
+                      ticks: {
+                        font: {
+                          size: 10,
+                        },
+                      },
+                    },
+                  },
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                  },
+                }} />
+              </div>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow-lg flex-1">
+              <h3 className="font-semibold text-sm mb-4">Grafik Kontribusi Petugas (%)</h3>
+              <div style={{ width: '100%', height: 300 }}>
+                <Pie data={pieChartConfig} options={pieChartOptions} />
+              </div>
+            </div>
+          </div>
+          <Tables data={tableData} />
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 

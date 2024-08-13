@@ -3,6 +3,7 @@ import React from 'react';
 export const Tables = ({ data }) => {
   return (
     <div className='mt-12'>
+      <h3 className="font-semibold text-base mb-2">Tabel Kinerja Petugas</h3>
       <table className="min-w-full bg-white border border-gray-300 overflow-x-auto shadow-xl">
         <thead>
           <tr className="bg-light-green text-white">

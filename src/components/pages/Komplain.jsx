@@ -119,6 +119,7 @@
 
 // export default DataKomplain;
 
+// src/pages/Komplain.jsx
 import React, { useMemo, Suspense, lazy } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import useDummyData from '../hooks/useDummyData';
@@ -126,6 +127,7 @@ import { IoSendSharp } from "react-icons/io5";
 import { FaTools, FaCheckCircle } from "react-icons/fa";
 import { MdPendingActions, MdOutlineAccessTimeFilled } from "react-icons/md";
 import Header from '../layouts/Header';
+import Footer from '../layouts/Footer';
 
 const Loading = lazy(() => import('../ui/Loading'));
 const Card = lazy(() => import('../ui/Card'));
@@ -174,43 +176,46 @@ const Komplain = () => {
   };
 
   return (
-    <section className='px-4 flex-1 pt-1'>
-      <Header
-        title={`Laporan Komplain IT Bulan ${getMonthName(selectedMonth)}`}
-        selectedMonth={selectedMonth}
-        setSelectedMonth={handleMonthChange}
-        getMonthName={getMonthName}
-        availableMonths={dataKomplain?.availableMonths || []}
-      />
-      <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
-        <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${dataKomplain?.totalKomplain || 0}`}</span>
-      </h3>
-      {loading ? (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Loading />
-        </Suspense>
-      ) : error ? (
-        <div className="text-red-500">{error.message || 'An error occurred'}</div>
-      ) : hasData ? (
-        <>
-          <div className='grid grid-cols-5 gap-4 mt-14'>
-            <Suspense fallback={<div>Loading Cards...</div>}>
-              {cards.map((card, index) => (
-                <Card key={index} {...card} />
-              ))}
-            </Suspense>
-          </div>
-          <Suspense fallback={<div>Loading Bar Chart...</div>}>
-            {dataKomplain?.jumlahUnitStatus && <BarChart data={dataKomplain.jumlahUnitStatus} />}
+    <>
+      <section className='px-4 flex-1 pt-1'>
+        <Header
+          title={`Laporan Komplain IT Bulan ${getMonthName(selectedMonth)}`}
+          selectedMonth={selectedMonth}
+          setSelectedMonth={handleMonthChange}
+          getMonthName={getMonthName}
+          availableMonths={dataKomplain?.availableMonths || []}
+        />
+        <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
+          <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${dataKomplain?.totalKomplain || 0}`}</span>
+        </h3>
+        {loading ? (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Loading />
           </Suspense>
-        </>
-      ) : (
-        <div className="mt-14 text-center text-gray-600">
-          <p className="text-xl">Tidak ada data komplain untuk bulan ini.</p>
-          <p className="mt-2">Silakan pilih bulan lain atau periksa kembali data Anda.</p>
-        </div>
-      )}
-    </section>
+        ) : error ? (
+          <div className="text-red-500">{error.message || 'An error occurred'}</div>
+        ) : hasData ? (
+          <>
+            <div className='grid grid-cols-5 gap-4 mt-14'>
+              <Suspense fallback={<div>Loading Cards...</div>}>
+                {cards.map((card, index) => (
+                  <Card key={index} {...card} />
+                ))}
+              </Suspense>
+            </div>
+            <Suspense fallback={<div>Loading Bar Chart...</div>}>
+              {dataKomplain?.jumlahUnitStatus && <BarChart data={dataKomplain.jumlahUnitStatus} />}
+            </Suspense>
+          </>
+        ) : (
+          <div className="mt-14 text-center text-gray-600">
+            <p className="text-xl">Tidak ada data komplain untuk bulan ini.</p>
+            <p className="mt-2">Silakan pilih bulan lain atau periksa kembali data Anda.</p>
+          </div>
+        )}
+      </section>
+      <Footer />
+    </>
   );
 };
 

@@ -12,6 +12,7 @@ import {
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
 import Loading from '../ui/Loading';
+import Footer from '../layouts/Footer';
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
@@ -153,42 +154,30 @@ const DataUnit = () => {
   const horizontalBarOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: 'y',
+    indexAxis: 'y', // Set indexAxis to 'y' for horizontal bars
+    scales: {
+      x: {
+        beginAtZero: true,
+        ticks: {
+          font: {
+            size: 11,
+          },
+        },
+      },
+      y: {
+        ticks: {
+          font: {
+            size: 11,
+          },
+        },
+      },
+    },
     plugins: {
       legend: {
         display: false,
       },
-      tooltip: {
-        callbacks: {
-          label: (context) => `${context.label}: ${context.raw}`
-        }
-      }
     },
-    scales: {
-      x: {
-        ticks: {
-          autoSkip: false,
-          maxRotation: 0,
-          minRotation: 0
-        }
-      },
-      y: {
-        ticks: {
-          autoSkip: false,
-          maxRotation: 0,
-          minRotation: 0
-        }
-      }
-    },
-    elements: {
-      bar: {
-        borderWidth: 1,
-        borderColor: '#fff',
-        borderRadius: 1,
-      }
-    }
   };
-
   const pieChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -230,6 +219,7 @@ const DataUnit = () => {
   }
 
   return (
+    <>
     <section className="px-4 flex-1 pt-1">
       <Header
         title={`Laporan Komplain IT Unit ${selectedUnit || ''} Bulan ${getMonthName(selectedMonth)}`}
@@ -262,7 +252,7 @@ const DataUnit = () => {
             <Suspense fallback={<div>Loading Chart...</div>}>
               <div className="bg-white p-4 rounded-lg shadow-lg">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-sm">Grafik Layanan</h3>
+                  <h3 className="font-semibold text-sm">{`Grafik Unit: ${selectedUnit}`}</h3>
                 </div>
                 <div style={{ width: '100%', height: 300 }}>
                   {filteredServiceChartData.length > 0 ? (
@@ -275,7 +265,7 @@ const DataUnit = () => {
 
               <div className="bg-white p-4 rounded-lg shadow-lg">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-sm">Grafik Status</h3>
+                  <h3 className="font-semibold text-sm">{`Grafik Status Unit: ${selectedUnit}`}</h3>
                 </div>
                 <div style={{ width: '100%', height: 300 }}>
                   {Object.keys(statusChartConfig.datasets[0].data).length > 0 ? (
@@ -292,6 +282,8 @@ const DataUnit = () => {
         <p className="mt-4 text-gray-500">No data available for the selected month and unit.</p>
       )}
     </section>
+    <Footer />
+    </>
   );
 };
 
