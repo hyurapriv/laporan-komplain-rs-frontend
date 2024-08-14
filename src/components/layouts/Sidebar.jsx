@@ -21,11 +21,11 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
   const mainMenuItems = [
     { name: 'Data Komplain IT', icon: <FaScrewdriverWrench />, path: '/' },
-    { 
-      name: ['Permintaan', 'Update Data IT'], 
-      icon: <FaFileUpload />, 
+    {
+      name: ['Permintaan', 'Update Data IT'],
+      icon: <FaFileUpload />,
       path: '/perubahan-data',
-      isTwoLines: true 
+      isTwoLines: true
     }
   ];
 
@@ -66,7 +66,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     <div className={`fixed top-0 bottom-0 left-0 bg-white border-r border-gray-200 transition-all duration-400 ease-in-out ${collapsed ? 'w-16' : 'w-64'} sidebar`}>
       <div className='flex justify-end items-center mt-4'>
         <button
-          className="p-2 text-white text-lg font-bold bg-light-green rounded-md mr-1 transition-transform duration-400 ease-in-out"
+          className={`p-2 text-white text-lg font-bold bg-light-green rounded-md mr-1 transition-transform duration-400 ease-in-out ${collapsed ? 'mr-4' : 'opacity-100 scale-100'}`}
           onClick={() => {
             setCollapsed(!collapsed);
             document.body.classList.toggle('sidebar-collapsed');
@@ -75,8 +75,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           <MdDoubleArrow className={`transform ${collapsed ? 'rotate-0' : 'rotate-180'} transition-transform duration-300 ease-in-out`} />
         </button>
       </div>
-      <div className='flex justify-center items-center py-4 h-32 w-full mt-10 overflow-hidden'>
-        <img src={Logo} className={`w-36 transition-all duration-400 ease-in-out ${collapsed ? 'opacity-0 scale-0' : 'opacity-100 scale-100'}`} alt="Logo" />
+      <div className='flex justify-center items-center py-4 h-40 w-full mt-24'>
+        <div className={`relative p-8 border-2 border-gray-200 duration-400 ease-in-out ${collapsed ? 'opacity-0 scale-0' : 'opacity-100 scale-100'}`}>
+          <img src={Logo} className={`w-40 transition-all duration-400 ease-in-out  ${collapsed ? 'opacity-0 scale-0' : 'opacity-100 scale-100'}`} alt="Logo" />
+        </div>
       </div>
       <nav className='mt-20'>
         {mainMenuItems.map((menuItem, index) => (

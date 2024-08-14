@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import useDummyData from '../hooks/useDummyData';
 import Header from '../layouts/Header';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -43,10 +44,10 @@ const unitOrder = [
 ];
 
 const DataUnit = () => {
+  const queryClient = useQueryClient();
   const {
     dataKomplain,
     setSelectedMonth,
-    availableMonths,
     selectedMonth,
     getMonthName,
     error,
@@ -56,29 +57,14 @@ const DataUnit = () => {
 
   const [selectedUnit, setSelectedUnit] = useState('');
 
-  // Set default month to August if available
   useEffect(() => {
-    if (!selectedMonth) {
-      const augustMonth = availableMonths.find(month => month === '2024-08');
-      if (augustMonth) {
-        setSelectedMonth(augustMonth);
-      } else if (availableMonths.length > 0) {
-        setSelectedMonth(availableMonths[0]); // Default to the first available month
-      }
+    if (dataKomplain?.availableMonths && !dataKomplain.availableMonths.includes(selectedMonth)) {
+      setSelectedMonth(dataKomplain.availableMonths[0]);
     }
-  }, [availableMonths, selectedMonth, setSelectedMonth]);
-
-  // Set default unit if not selected
-  useEffect(() => {
-    const units = dataKomplain?.jumlahUnitStatus ? Object.keys(dataKomplain.jumlahUnitStatus) : [];
-    if (units.length > 0 && !selectedUnit) {
-      setSelectedUnit(units[0]);
-    }
-  }, [dataKomplain, selectedUnit]);
+  }, [dataKomplain, selectedMonth, setSelectedMonth]);
 
   useEffect(() => {
     if (dataKomplain?.jumlahUnitStatus) {
-      // Set default selected unit based on order
       const units = Object.keys(dataKomplain.jumlahUnitStatus);
       const firstAvailableUnit = unitOrder.find(unit => units.includes(unit));
       if (firstAvailableUnit && !selectedUnit) {
@@ -203,6 +189,14 @@ const DataUnit = () => {
     cutout: '50%',
   };
 
+  const handleMonthChange = (newMonth) => {
+    setSelectedMonth(newMonth);
+    queryClient.prefetchQuery({
+      queryKey: ['komplainData', newMonth],
+      queryFn: () => fetchKomplainData(newMonth)
+    });
+  };
+
   // Loading and Error Handling
   if (loading) {
     return (
@@ -224,9 +218,9 @@ const DataUnit = () => {
       <Header
         title={`Laporan Komplain IT Unit ${selectedUnit || ''} Bulan ${getMonthName(selectedMonth)}`}
         selectedMonth={selectedMonth}
-        setSelectedMonth={setSelectedMonth}
+        setSelectedMonth={handleMonthChange}
         getMonthName={getMonthName}
-        availableMonths={availableMonths}
+        availableMonths={dataKomplain?.availableMonths || []}
       />
       <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
         <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${totalKomplainForUnit}`}</span>

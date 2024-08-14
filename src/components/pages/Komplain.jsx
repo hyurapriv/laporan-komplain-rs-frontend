@@ -119,7 +119,7 @@
 
 // export default DataKomplain;
 
-// src/pages/Komplain.jsx
+
 import React, { useMemo, Suspense, lazy } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import useDummyData from '../hooks/useDummyData';
