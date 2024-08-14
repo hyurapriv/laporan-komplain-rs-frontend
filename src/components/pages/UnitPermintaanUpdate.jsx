@@ -168,7 +168,7 @@ const UnitPermintaanUpdate = () => {
           boxWidth: 14, // Size of the legend squares
           padding: 10, // Spacing between legend items
           font: {
-            size: 12 // Font size for legend text
+            size: 11 // Font size for legend text
           }
         }
       }
@@ -187,8 +187,8 @@ const UnitPermintaanUpdate = () => {
           getMonthName={getMonthName}
           availableMonths={availableMonths}
         />
-        <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
-          <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan Update Data: ${totalUpdateForUnit}`}</span>
+        <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
+          <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan: ${totalUpdateForUnit}`}</span>
         </h3>
 
         {loading ? (
@@ -207,7 +207,7 @@ const UnitPermintaanUpdate = () => {
                 id="unit-select"
                 value={selectedUnit}
                 onChange={(e) => setSelectedUnit(e.target.value)}
-                className="bg-white border border-slate-500 rounded-md p-2"
+                className="bg-white border border-slate-500 rounded-md p-1 text-sm"
               >
                 {Object.keys(dataUpdate.jumlahUnitStatus || {}).map((unit) => (
                   <option key={unit} value={unit}>{unit}</option>

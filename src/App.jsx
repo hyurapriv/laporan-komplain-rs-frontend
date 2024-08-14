@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Sidebar from './components/layouts/Sidebar';
 import DataKomplain from './components/pages/Komplain';
@@ -10,14 +10,28 @@ import KinerjaPermintaanUpdate from './components/pages/KinerjaPermintaanUpdate'
 
 function App() {
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768); // Menggunakan breakpoint 768px untuk mobile
+    };
+
+    handleResize(); // Cek ukuran layar saat komponen dimount
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   return (
     <Router>
       <div className="flex h-screen overflow-hidden">
-        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      {!isMobile && <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
         <main 
           className={`flex-1 bg-soft-green transition-all duration-300 ease-in-out ${
-            collapsed ? 'ml-16' : 'ml-64'
+            !isMobile && (collapsed ? 'ml-16' : 'ml-64')
           }`}
         >
           <div className="container mx-auto px-6 py-8 h-full overflow-y-auto">

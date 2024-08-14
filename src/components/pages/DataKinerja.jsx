@@ -141,12 +141,12 @@ const DataKinerja = () => {
           getMonthName={getMonthName}
           availableMonths={dataKomplain.availableMonths}
         />
-        <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
+        <h3 className='mt-5 lg:mt-2 text-lg font-bold text-white'>
           <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${totalComplaints}`}</span>
         </h3>
 
         <div className="mt-10">
-          <div className="flex justify-between gap-6 mb-6">
+          <div className="flex flex-col lg:flex-row lg:justify-between gap-6 mb-6">
             <div className="bg-white p-4 rounded-lg shadow-lg flex-1">
               <h3 className="font-semibold text-sm mb-4">Grafik Kinerja Petugas</h3>
               <div style={{ width: '100%', height: 300 }}>
@@ -178,7 +178,7 @@ const DataKinerja = () => {
                 }} />
               </div>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-lg flex-1">
+            <div className="bg-white p-4 rounded-lg shadow-lg flex-1 mt-6 lg:mt-0">
               <h3 className="font-semibold text-sm mb-4">Grafik Kontribusi Petugas (%)</h3>
               <div style={{ width: '100%', height: 300 }}>
                 <Pie data={pieChartConfig} options={pieChartOptions} />

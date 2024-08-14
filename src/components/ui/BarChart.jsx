@@ -62,7 +62,7 @@ const BarChart = ({ data }) => {
         display: true,
         text: 'Total Komplain Berdasarkan Unit',
         font: {
-          size: 16,
+          size: 13,
           weight: 'bold'
         },
         padding: {
@@ -117,14 +117,14 @@ const BarChart = ({ data }) => {
   };
 
   const CustomLegend = () => (
-    <div className="flex flex-wrap justify-center mt-4">
+    <div className="flex flex-wrap justify-center mt-4 text-sm">
       {chartData.labels.map((label, index) => (
-        <div key={index} className="flex items-center mx-7 mb-2">
+        <div key={index} className="flex items-center mx-1 lg:mx-4 mb-2">
           <div
-            className="w-4 h-4 mr-2"
+            className="w-3 h-3 mr-2"
             style={{ backgroundColor: chartData.datasets[0].backgroundColor[index] }}
           ></div>
-          <span className="text-sm">{label}</span>
+          <span className="text-xs lg:text-base">{label}</span>
         </div>
       ))}
     </div>

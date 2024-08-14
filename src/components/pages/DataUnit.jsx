@@ -180,7 +180,7 @@ const DataUnit = () => {
           boxWidth: 14,
           padding: 10,
           font: {
-            size: 12
+            size: 11
           }
         }
       }
@@ -222,7 +222,7 @@ const DataUnit = () => {
         getMonthName={getMonthName}
         availableMonths={dataKomplain?.availableMonths || []}
       />
-      <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
+      <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
         <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${totalKomplainForUnit}`}</span>
       </h3>
 
@@ -234,7 +234,7 @@ const DataUnit = () => {
               id="unit-select"
               value={selectedUnit}
               onChange={(e) => setSelectedUnit(e.target.value)}
-              className="bg-white border border-slate-500 rounded-md p-2"
+              className="bg-white border border-slate-500 rounded-md p-1 text-sm"
             >
               {unitOrder.map((unit) => (
                 <option key={unit} value={unit}>{unit}</option>

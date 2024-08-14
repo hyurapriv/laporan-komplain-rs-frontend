@@ -55,43 +55,50 @@ const PermintaanUpdate = () => {
 
   return (
     <>
-      <section className='px-4 flex-1 pt-1'>
-        <Header
-          title={`Laporan Permintaan Update Data Bulan ${getMonthName(selectedMonth)}`}
-          selectedMonth={selectedMonth}
-          setSelectedMonth={handleMonthChange}
-          getMonthName={getMonthName}
-          availableMonths={dataUpdate?.availableMonths || []}
-        />
-        <h3 className='ml-1 mt-2 text-lg font-bold text-white'>
-          <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan Update Data: ${dataUpdate?.totalKomplain || 0}`}</span>
-        </h3>
-        {loading ? (
-          <Suspense fallback={<div>Loading...</div>}>
-            <Loading />
-          </Suspense>
-        ) : error ? (
-          <div className="text-red-500">{error.message || 'An error occurred'}</div>
-        ) : hasData ? (
-          <>
-            <div className='grid grid-cols-5 gap-4 mt-14'>
-              <Suspense fallback={<div>Loading Cards...</div>}>
-                {cards.map((card, index) => (
-                  <Card key={index} {...card} />
-                ))}
+      <div className="flex flex-col min-h-screen">
+        <div className="flex-grow">
+          <section className='px-2 lg:px-8 xl:px-4 pt-4 lg:pt-1'>
+            <Header
+              title={`Laporan Permintaan Update Data Bulan ${getMonthName(selectedMonth)}`}
+              selectedMonth={selectedMonth}
+              setSelectedMonth={handleMonthChange}
+              getMonthName={getMonthName}
+              availableMonths={dataUpdate?.availableMonths || []}
+            />
+            <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
+              <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan: ${dataUpdate?.totalKomplain || 0}`}</span>
+            </h3>
+            {loading ? (
+              <Suspense fallback={<div>Loading...</div>}>
+                <Loading />
               </Suspense>
-            </div>
-            <Suspense fallback={<div>Loading Chart...</div>}>
-              {dataUpdate?.jumlahUnitStatus && <BarChart data={dataUpdate.jumlahUnitStatus} />}
-            </Suspense>
-          </>
-        ) : (
-          <div className="mt-14 text-center text-gray-600">
-            <p className="text-xl">Tidak ada data permintaan update untuk bulan ini.</p>
-            <p className="mt-2">Silakan pilih bulan lain atau periksa kembali data Anda.</p>
-          </div>
-        )}
-      </section>
+            ) : error ? (
+              <div className="text-red-500">{error.message || 'An error occurred'}</div>
+            ) : hasData ? (
+              <>
+                <div className='grid grid-cols-2 md:grid-cols-5 gap-4 mt-8 lg:mt-12'>
+                  <Suspense fallback={<div className="text-center py-4">Loading Cards...</div>}>
+                    {cards.slice(0, 4).map((card, index) => (
+                      <Card key={index} {...card} />
+                    ))}
+                    <div className="col-span-2 md:col-span-1">
+                      <Card {...cards[4]} />
+                    </div>
+                  </Suspense>
+                </div>
+                <Suspense fallback={<div>Loading Chart...</div>}>
+                  {dataUpdate?.jumlahUnitStatus && <BarChart data={dataUpdate.jumlahUnitStatus} />}
+                </Suspense>
+              </>
+            ) : (
+              <div className="mt-14 text-center text-gray-600">
+                <p className="text-xl">Tidak ada data permintaan update untuk bulan ini.</p>
+                <p className="mt-2">Silakan pilih bulan lain atau periksa kembali data Anda.</p>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
       <Footer />
     </>
   );
