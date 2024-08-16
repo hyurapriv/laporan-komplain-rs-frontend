@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap');@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -29,13 +31,43 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Tambahkan ini untuk memastikan konten utama menyesuaikan dengan benar */
+/* Ensure the main content adjusts with the sidebar */
 main {
-  width: calc(100% - 16rem); /* Lebar penuh dikurangi lebar sidebar yang terbuka */
+  width: calc(100% - 16rem); /* Sidebar open */
+}
+/* Untuk perangkat mobile */
+@media (max-width: 768px) {
+  main {
+    padding-top: 4rem; /* Menyesuaikan padding atas untuk memberi ruang bagi navbar */
+    margin-left: 0; /* Pastikan margin kiri 0 pada perangkat mobile */
+  }
+
+  .navbar {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 50; /* Pastikan navbar berada di atas konten */
+  }
 }
 
-.sidebar-collapsed main {
-  width: calc(100% - 4rem); /* Lebar penuh dikurangi lebar sidebar yang tertutup */
+/* Untuk perangkat tablet */
+@media (min-width: 769px) and (max-width: 1028px) {
+  main {
+    padding-top: 4rem; /* Menyesuaikan padding atas untuk memberi ruang bagi navbar */
+    margin-left: 0; /* Pastikan margin kiri 0 pada perangkat tablet */
+  }
+}
+
+
+.sidebar-collapsed ~ main {
+  width: calc(100% - 4rem); /* Sidebar collapsed */
+}
+
+@media (max-width: 768px) {
+  main {
+    width: 100%; /* Full width on mobile */
+    margin-left: 0;
+  }
 }
 
 /* Custom Scrollbar for WebKit Browsers */
@@ -68,3 +100,8 @@ main {
   overflow-y: auto; /* Allows vertical scrolling */
 }
 
+@media (max-width: 1024px) {
+  .sidebar {
+    display: none; /* Hide sidebar on tablet and mobile */
+  }
+}

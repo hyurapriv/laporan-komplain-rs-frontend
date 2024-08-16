@@ -9,13 +9,9 @@ import { FaFileUpload } from "react-icons/fa";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const location = useLocation();
-  const [openMenu, setOpenMenu] = useState(() => {
-    // Get the stored open menu from localStorage or default to an empty string
-    return localStorage.getItem('openMenu') || '';
-  });
+  const [openMenu, setOpenMenu] = useState(localStorage.getItem('openMenu') || '');
 
   useEffect(() => {
-    // Store the open menu state in localStorage whenever it changes
     localStorage.setItem('openMenu', openMenu);
   }, [openMenu]);
 
@@ -110,12 +106,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                 <Link
                   key={index}
                   to={item.path}
-                  className={`flex items-center w-full px-4 py-2 text-xs font-medium transition-all duration-300 ease-in-out
-                    ${isActive(item.path) ? 'bg-light-green text-white' : 'text-gray-600 hover:bg-gray-100'}
-                    ${collapsed ? 'justify-center' : ''}`}
-                  style={{ paddingLeft: collapsed ? '1rem' : '2rem' }}
+                  className={`flex items-center px-8 py-2 text-gray-600 hover:bg-gray-100 transition-colors duration-300 ease-in-out ${isActive(item.path) ? 'bg-light-green text-white' : ''}`}
                 >
-                  {renderMenuItemContent(item)}
+                  {item.icon}
+                  {!collapsed && <span className="ml-2 text-sm">{item.name}</span>}
                 </Link>
               ))}
             </div>
