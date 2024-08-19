@@ -1,6 +1,6 @@
 import React, { useMemo, Suspense, lazy } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import useDummyData from '../hooks/useDummyData';
+import useNewData from '../hooks/useNewData';
 import { IoSendSharp } from "react-icons/io5";
 import { FaTools, FaCheckCircle } from "react-icons/fa";
 import { MdPendingActions, MdOutlineAccessTimeFilled } from "react-icons/md";
@@ -20,7 +20,7 @@ const PermintaanUpdate = () => {
     setSelectedMonth,
     getMonthName,
     selectedMonth,
-  } = useDummyData();
+  } = useNewData();
 
   // Ensure selectedMonth is within the available months
   React.useEffect(() => {

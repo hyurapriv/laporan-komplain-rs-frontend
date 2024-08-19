@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
-import useDummyData from '../hooks/useDummyData';
 import Header from '../layouts/Header';
 import {
   Chart as ChartJS,
@@ -13,6 +12,7 @@ import {
 import { Bar, Pie } from 'react-chartjs-2';
 import Loading from '../ui/Loading';
 import Footer from '../layouts/Footer';
+import useNewData from '../hooks/useNewData';
 
 // Register Chart.js components
 ChartJS.register(
@@ -50,7 +50,7 @@ const UnitPermintaanUpdate = () => {
     error,
     loading,
     serviceChartDataUpdate
-  } = useDummyData();
+  } = useNewData();
 
   const [selectedUnit, setSelectedUnit] = useState('');
 

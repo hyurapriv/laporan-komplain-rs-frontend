@@ -120,9 +120,9 @@
 // export default DataKomplain;
 
 
-import React, { useMemo, Suspense, lazy } from 'react';
+import React, { useMemo, useEffect, Suspense, lazy } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import useDummyData from '../hooks/useDummyData';
+import useNewData from '../hooks/useNewData';
 import { IoSendSharp } from "react-icons/io5";
 import { FaTools, FaCheckCircle } from "react-icons/fa";
 import { MdPendingActions, MdOutlineAccessTimeFilled } from "react-icons/md";
@@ -136,44 +136,39 @@ const BarChart = lazy(() => import('../ui/BarChart'));
 const Komplain = () => {
   const queryClient = useQueryClient();
   const {
-    dataKomplain,
+    data: dataKomplain,
     error,
     loading,
     setSelectedMonth,
+    setSelectedYear,
     getMonthName,
+    availableMonths,
     selectedMonth,
-    averageResponseTimeData
-  } = useDummyData();
+    selectedYear
+  } = useNewData();
 
-  React.useEffect(() => {
-    if (dataKomplain?.availableMonths && !dataKomplain.availableMonths.includes(selectedMonth)) {
-      setSelectedMonth(dataKomplain.availableMonths[0]);
+  useEffect(() => {
+    console.log("Available Months:", availableMonths); // Log for debugging
+    if (availableMonths.length && !availableMonths.includes(selectedMonth)) {
+      setSelectedMonth(availableMonths[0]);
     }
-  }, [dataKomplain, selectedMonth, setSelectedMonth]);
+  }, [availableMonths, selectedMonth, setSelectedMonth]);
 
   const cards = useMemo(() => {
-    const { jumlahStatus = {}, rerataResponTime = {} } = dataKomplain || {};
+    const { totalStatus = {}, overallAverageResponTime = {} } = dataKomplain || {};
     return [
-      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-green', value: jumlahStatus?.Terkirim || 0 },
-      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-green', value: jumlahStatus?.Proses || 0 },
-      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: jumlahStatus?.Selesai || 0 },
-      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-green', value: jumlahStatus?.Pending || 0 },
-      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-green', value: rerataResponTime?.formatted || 'N/A' },
+      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-green', value: totalStatus?.Terkirim || 0 },
+      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-yellow', value: totalStatus?.["Dalam Pengerjaan / Pengecekan Petugas"] || 0 },
+      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-blue', value: totalStatus?.Selesai || 0 },
+      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-red', value: totalStatus?.Pending || 0 },
+      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-gray', value: overallAverageResponTime || 'N/A' },
     ];
   }, [dataKomplain]);
 
   const hasData = useMemo(() => {
-    const { totalKomplain, jumlahUnitStatus } = dataKomplain || {};
-    return totalKomplain > 0 && Object.keys(jumlahUnitStatus || {}).length > 0;
+    const { totalStatus } = dataKomplain || {};
+    return Object.keys(totalStatus || {}).length > 0;
   }, [dataKomplain]);
-
-  const handleMonthChange = (newMonth) => {
-    setSelectedMonth(newMonth);
-    queryClient.prefetchQuery({
-      queryKey: ['komplainData', newMonth],
-      queryFn: () => fetchKomplainData(newMonth)
-    });
-  };
 
   return (
     <>
@@ -181,15 +176,17 @@ const Komplain = () => {
         <div className="flex-grow">
           <section className='px-2 lg:px-8 xl:px-4 pt-4 lg:pt-1'>
             <Header
-              title={`Laporan Komplain IT Bulan ${getMonthName(selectedMonth)}`}
+              title={`Laporan Komplain IT Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
               selectedMonth={selectedMonth}
-              setSelectedMonth={handleMonthChange}
+              selectedYear={selectedYear}
+              setSelectedMonth={setSelectedMonth}
+              setSelectedYear={setSelectedYear}
               getMonthName={getMonthName}
-              availableMonths={dataKomplain?.availableMonths || []}
+              availableMonths={availableMonths}
             />
             <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
               <span className='bg-light-green py-2 px-3 rounded'>
-                {`Total Komplain: ${dataKomplain?.totalKomplain || 0}`}
+                {`Total Komplain: ${dataKomplain?.totalStatus?.Total || 0}`}
               </span>
             </h3>
             {loading ? (
@@ -211,25 +208,22 @@ const Komplain = () => {
                   </Suspense>
                 </div>
                 <Suspense fallback={<div className="text-center py-8">Loading Bar Chart...</div>}>
-                  {dataKomplain?.jumlahUnitStatus && (
+                  {dataKomplain?.units && (
                     <div className="mt-8 lg:mt-12">
-                      <BarChart data={dataKomplain.jumlahUnitStatus} />
+                      <BarChart data={dataKomplain.units} />
                     </div>
                   )}
                 </Suspense>
               </>
             ) : (
-              <div className="mt-8 lg:mt-12 text-center text-gray-600">
-                <p className="text-xl lg:text-2xl">Tidak ada data komplain untuk bulan ini.</p>
-                <p className="mt-2 lg:mt-4">Silakan pilih bulan lain atau periksa kembali data Anda.</p>
-              </div>
+              <div className="text-center py-8">No data available for the selected month</div>
             )}
           </section>
         </div>
+        <Footer />
       </div>
-      <Footer />
     </>
   );
 };
 
-export default React.memo(Komplain);
+export default Komplain;

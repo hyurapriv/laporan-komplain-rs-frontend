@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
-import useDummyData from '../hooks/useDummyData';
+import useNewData from '../hooks/useNewData';
 import Header from '../layouts/Header';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -53,7 +53,7 @@ const DataUnit = () => {
     error,
     loading,
     serviceChartDataKomplain
-  } = useDummyData();
+  } = useNewData();
 
   const [selectedUnit, setSelectedUnit] = useState('');
 

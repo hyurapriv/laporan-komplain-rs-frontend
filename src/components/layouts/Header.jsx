@@ -1,6 +1,18 @@
 import React from 'react';
 
 const Header = ({ title, selectedMonth, setSelectedMonth, getMonthName, availableMonths }) => {
+
+  // Function to generate month-year options for the dropdown based on availableMonths
+  const generateMonthYearOptions = () => {
+    return availableMonths.map(monthYear => {
+      const [year, month] = monthYear.split('-');
+      return {
+        value: monthYear,
+        label: `${getMonthName(parseInt(month, 10))} ${year}` // Ensure month is an integer for getMonthName
+      };
+    });
+  };
+
   return (
     <div className='flex flex-wrap justify-between items-center gap-4'>
       <h3 className='lg:text-2xl text-sm font-bold text-slate-800 break-words'>
@@ -12,15 +24,16 @@ const Header = ({ title, selectedMonth, setSelectedMonth, getMonthName, availabl
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
             className='bg-white border border-slate-500 rounded-md p-1 lg:p-2 text-center'
+            aria-label="Select month and year"
           >
-            {availableMonths.map((month) => (
-              <option className='lg:text-base text-sm' key={month} value={month}>
-                {getMonthName(month)}
+            {generateMonthYearOptions().map(option => (
+              <option className='lg:text-base text-sm' key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>
         ) : (
-          <div>No months available</div>
+          <div className="text-slate-500">No months available</div>
         )}
       </div>
     </div>

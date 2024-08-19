@@ -9,7 +9,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import useDummyData from '../hooks/useDummyData';
+import useNewData from '../hooks/useNewData';
 import Header from '../layouts/Header';
 import Loading from '../ui/Loading';
 import { Tables } from '../ui/Tables';
@@ -71,7 +71,7 @@ const KinerjaPermintaanUpdate = () => {
     setSelectedMonth,
     loading,
     error,
-  } = useDummyData();
+  } = useNewData();
 
   const totalRequests = useMemo(() => {
     if (!dataUpdate || !dataUpdate.jumlahPetugas) return 0;
