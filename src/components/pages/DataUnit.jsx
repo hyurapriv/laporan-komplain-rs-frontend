@@ -27,45 +27,48 @@ const colorPalette = [
 // Define status colors and order
 const statusColors = {
   'Terkirim': '#36A2EB',
-  'Proses': '#F79D23',
+  'Dalam Pengerjaan / Pengecekan Petugas': '#F79D23',
   'Selesai': '#32CD32',
   'Pending': '#3E5F8A'
 };
 
-const statusOrder = ['Terkirim', 'Proses', 'Selesai', 'Pending'];
+const statusOrder = ['Terkirim', 'Dalam Pengerjaan / Pengecekan Petugas', 'Selesai', 'Pending'];
 
 const unitOrder = [
-  'Rawat Jalan',
-  'Rawat Inap/Rawat Inap Khusus',
-  'IGD',
-  'Penunjang Medis',
-  'Penunjang Non-Medis',
-  'IBS'
+  'Kategori IGD',
+  'Kategori Rawat Jalan',
+  'Kategori Rawat Inap',
+  'Kategori Penunjang Medis',
+  'Kategori Lainnya'
 ];
 
 const DataUnit = () => {
   const queryClient = useQueryClient();
   const {
-    dataKomplain,
+    data: dataKomplain,
     setSelectedMonth,
-    selectedMonth,
+    setSelectedYear,
     getMonthName,
     error,
     loading,
-    serviceChartDataKomplain
+    selectedMonth,
+    selectedYear,
+    availableMonths
   } = useNewData();
 
   const [selectedUnit, setSelectedUnit] = useState('');
 
   useEffect(() => {
-    if (dataKomplain?.availableMonths && !dataKomplain.availableMonths.includes(selectedMonth)) {
-      setSelectedMonth(dataKomplain.availableMonths[0]);
+    if (availableMonths && availableMonths.length > 0 && !availableMonths.includes(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`)) {
+      const [latestYear, latestMonth] = availableMonths[0].split('-');
+      setSelectedYear(parseInt(latestYear, 10));
+      setSelectedMonth(latestMonth);
     }
-  }, [dataKomplain, selectedMonth, setSelectedMonth]);
+  }, [availableMonths, selectedMonth, selectedYear, setSelectedMonth, setSelectedYear]);
 
   useEffect(() => {
-    if (dataKomplain?.jumlahUnitStatus) {
-      const units = Object.keys(dataKomplain.jumlahUnitStatus);
+    if (dataKomplain?.categories) {
+      const units = Object.keys(dataKomplain.categories);
       const firstAvailableUnit = unitOrder.find(unit => units.includes(unit));
       if (firstAvailableUnit && !selectedUnit) {
         setSelectedUnit(firstAvailableUnit);
@@ -73,37 +76,72 @@ const DataUnit = () => {
     }
   }, [dataKomplain, selectedUnit]);
 
-  // Filter service chart data based on selected unit
-  const filteredServiceChartData = useMemo(() => {
-    if (serviceChartDataKomplain && selectedUnit) {
-      return serviceChartDataKomplain.filter(item => item.unit === selectedUnit);
-    }
-    return [];
-  }, [serviceChartDataKomplain, selectedUnit]);
-
   // Configure service chart
   const serviceChartConfig = useMemo(() => {
-    const labels = filteredServiceChartData.map(item => item.layanan);
-    const data = filteredServiceChartData.map(item => item.jumlah);
-    const backgroundColor = data.map((_, index) => colorPalette[index % colorPalette.length]);
+    if (dataKomplain?.categories && selectedUnit) {
+      const unitData = dataKomplain.categories[selectedUnit] || {};
+      const labels = Object.keys(unitData);
+      const data = labels.map(service => unitData[service]?.Total || 0);
+      const backgroundColor = data.map((_, index) => colorPalette[index % colorPalette.length]);
 
+      return {
+        labels,
+        datasets: [{
+          label: 'Jumlah Komplain',
+          data,
+          backgroundColor,
+        }]
+      };
+    }
     return {
-      labels,
+      labels: ['No Data'],
       datasets: [{
         label: 'Jumlah Komplain',
-        data,
-        backgroundColor,
+        data: [0],
+        backgroundColor: colorPalette[0]
       }]
     };
-  }, [filteredServiceChartData]);
+  }, [dataKomplain, selectedUnit]);
 
-  // Configure status chart
+  // Define status colors and order with updated status names
+  const statusColors = {
+    'Menunggu': '#36A2EB',
+    'Proses': '#F79D23',
+    'Selesai': '#32CD32',
+    'Pending': '#3E5F8A'
+  };
+
+  const statusOrder = ['Menunggu', 'Proses', 'Selesai', 'Pending'];
+
   const statusChartConfig = useMemo(() => {
-    if (dataKomplain?.jumlahUnitStatus && selectedUnit) {
-      const statusData = dataKomplain.jumlahUnitStatus[selectedUnit]?.statuses || {};
-      const labels = statusOrder.map(status => status === 'Terkirim' ? 'Menunggu' : status);
-      const data = labels.map(label => statusData[label === 'Menunggu' ? 'Terkirim' : label] || 0);
-      const backgroundColor = labels.map(label => statusColors[label === 'Menunggu' ? 'Terkirim' : label]);
+    if (dataKomplain?.categories && selectedUnit) {
+      const unitData = dataKomplain.categories[selectedUnit] || {};
+      const statusData = {};
+      Object.values(unitData).forEach(service => {
+        Object.entries(service).forEach(([status, count]) => {
+          // Map old status names to the new ones
+          let newStatus;
+          switch (status) {
+            case 'Terkirim':
+              newStatus = 'Menunggu';
+              break;
+            case 'Dalam Pengerjaan / Pengecekan Petugas':
+              newStatus = 'Proses';
+              break;
+            default:
+              newStatus = status;
+          }
+
+          if (statusOrder.includes(newStatus)) {
+            statusData[newStatus] = (statusData[newStatus] || 0) + count;
+          }
+        });
+      });
+
+      const labels = statusOrder;
+      const data = labels.map(status => statusData[status] || 0);
+      const backgroundColor = labels.map(label => statusColors[label]);
+
       return {
         labels,
         datasets: [{
@@ -123,24 +161,21 @@ const DataUnit = () => {
     };
   }, [dataKomplain, selectedUnit]);
 
+
+
   // Calculate total complaints for the selected unit
   const totalKomplainForUnit = useMemo(() => {
-    if (dataKomplain?.jumlahUnitStatus && selectedUnit) {
-      return Object.values(dataKomplain.jumlahUnitStatus[selectedUnit]?.statuses || {}).reduce((a, b) => a + b, 0);
+    if (dataKomplain?.categories && selectedUnit) {
+      return Object.values(dataKomplain.categories[selectedUnit] || {}).reduce((total, service) => total + (service.Total || 0), 0);
     }
     return 0;
   }, [dataKomplain, selectedUnit]);
-
-  // Check if there is data for charts
-  const hasData = useMemo(() => {
-    return filteredServiceChartData.length > 0 && dataKomplain?.jumlahUnitStatus;
-  }, [filteredServiceChartData, dataKomplain]);
 
   // Chart options
   const horizontalBarOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: 'y', // Set indexAxis to 'y' for horizontal bars
+    indexAxis: 'y',
     scales: {
       x: {
         beginAtZero: true,
@@ -189,11 +224,13 @@ const DataUnit = () => {
     cutout: '50%',
   };
 
-  const handleMonthChange = (newMonth) => {
-    setSelectedMonth(newMonth);
+  const handleMonthChange = (newMonthYear) => {
+    const [year, month] = newMonthYear.split('-');
+    setSelectedYear(parseInt(year, 10));
+    setSelectedMonth(month);
     queryClient.prefetchQuery({
-      queryKey: ['komplainData', newMonth],
-      queryFn: () => fetchKomplainData(newMonth)
+      queryKey: ['newData', parseInt(year, 10), month],
+      queryFn: () => fetchNewData(parseInt(year, 10), month)
     });
   };
 
@@ -214,19 +251,18 @@ const DataUnit = () => {
 
   return (
     <>
-    <section className="px-4 flex-1 pt-1">
-      <Header
-        title={`Laporan Komplain IT Unit ${selectedUnit || ''} Bulan ${getMonthName(selectedMonth)}`}
-        selectedMonth={selectedMonth}
-        setSelectedMonth={handleMonthChange}
-        getMonthName={getMonthName}
-        availableMonths={dataKomplain?.availableMonths || []}
-      />
-      <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
-        <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${totalKomplainForUnit}`}</span>
-      </h3>
+      <section className="px-4 flex-1 pt-1">
+        <Header
+          title={`Laporan Komplain IT Unit ${selectedUnit || ''} Bulan ${getMonthName(parseInt(selectedMonth, 10))} ${selectedYear}`}
+          selectedMonth={`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`}
+          setSelectedMonth={handleMonthChange}
+          getMonthName={getMonthName}
+          availableMonths={availableMonths || []}
+        />
+        <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
+          <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${totalKomplainForUnit}`}</span>
+        </h3>
 
-      {hasData ? (
         <div className="mt-6">
           <div className="mb-8">
             <label htmlFor="unit-select" className="mr-2">Pilih Unit:</label>
@@ -249,11 +285,7 @@ const DataUnit = () => {
                   <h3 className="font-semibold text-sm">{`Grafik Unit: ${selectedUnit}`}</h3>
                 </div>
                 <div style={{ width: '100%', height: 300 }}>
-                  {filteredServiceChartData.length > 0 ? (
-                    <Bar data={serviceChartConfig} options={horizontalBarOptions} />
-                  ) : (
-                    <p>No data available for the selected unit</p>
-                  )}
+                  <Bar data={serviceChartConfig} options={horizontalBarOptions} />
                 </div>
               </div>
 
@@ -262,21 +294,14 @@ const DataUnit = () => {
                   <h3 className="font-semibold text-sm">{`Grafik Status Unit: ${selectedUnit}`}</h3>
                 </div>
                 <div style={{ width: '100%', height: 300 }}>
-                  {Object.keys(statusChartConfig.datasets[0].data).length > 0 ? (
-                    <Pie data={statusChartConfig} options={pieChartOptions} />
-                  ) : (
-                    <p>No data available for the selected unit</p>
-                  )}
+                  <Pie data={statusChartConfig} options={pieChartOptions} />
                 </div>
               </div>
             </Suspense>
           </div>
         </div>
-      ) : (
-        <p className="mt-4 text-gray-500">No data available for the selected month and unit.</p>
-      )}
-    </section>
-    <Footer />
+      </section>
+      <Footer />
     </>
   );
 };

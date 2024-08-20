@@ -26,30 +26,25 @@ const BarChart = ({ data }) => {
       return { labels: [], datasets: [] };
     }
 
-    const predefinedOrder = ['IGD', 'Rawat Jalan', 'Rawat Inap/Rawat Inap Khusus', 'Penunjang Medis', 'Penunjang Non-Medis', 'IBS'];
-    const units = predefinedOrder.filter(unit => unit in data);
-    const additionalUnits = Object.keys(data).filter(unit => !predefinedOrder.includes(unit));
-    const sortedUnits = units.concat(additionalUnits);
-
-    const totalComplaints = sortedUnits.map(unit =>
-      Object.values(data[unit]?.statuses || {}).reduce((acc, count) => acc + count, 0)
+    const labels = Object.keys(data);
+    const values = labels.map(category => 
+      Object.values(data[category]).reduce((acc, unit) => acc + unit.Total, 0)
     );
 
-    const colors = ['#267db3', '#6dc486', '#fad25e', '#ec6444', '#8561c8', '#E67E22'];
-    const datasetColor = sortedUnits.map((_, index) => colors[index % colors.length]);
-
-    const shortenedLabels = sortedUnits.map(unit =>
-      unit.includes('Rawat Inap/Rawat Inap Khusus') ? 'Rawat Inap' : unit
-    );
+    const colors = ['#267db3', '#6dc486', '#fad25e', '#ec6444', '#8561c8'];
+    const datasetColor = colors.slice(0, labels.length);
 
     return {
-      labels: shortenedLabels,
+      labels,
       datasets: [{
-        data: totalComplaints,
+        label: 'Total Complaints',
+        data: values,
         backgroundColor: datasetColor,
       }]
     };
   }, [data]);
+
+  console.log('BarChart chartData:', JSON.stringify(chartData, null, 2));
 
   const options = {
     responsive: true,
@@ -60,7 +55,7 @@ const BarChart = ({ data }) => {
       },
       title: {
         display: true,
-        text: 'Total Komplain Berdasarkan Unit',
+        text: 'Total Komplain Berdasarkan Kategori',
         font: {
           size: 13,
           weight: 'bold'

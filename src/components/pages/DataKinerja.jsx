@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
-import { Bar, Pie } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
-  ArcElement,
   Tooltip,
   Legend
 } from 'chart.js';
@@ -20,7 +19,6 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
-  ArcElement,
   Tooltip,
   Legend
 );
@@ -38,151 +36,106 @@ const petugasColors = {
 // Define the fixed order of petugas
 const fixedOrder = ['Adika', 'Agus', 'Ali Muhson', 'Bayu', 'Ganang', 'Virgie'];
 
-// Pie Chart Options
-const pieChartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    tooltip: {
-      callbacks: {
-        label: (context) => `${context.label}: ${context.raw}%`
-      }
-    },
-    legend: {
-      display: true,
-      position: 'bottom',
-      labels: {
-        boxWidth: 14,
-        padding: 10,
-        font: {
-          size: 12
-        }
-      }
-    }
-  },
-  rotation: Math.PI * -0.5,
-  cutout: '50%',
-};
-
 const DataKinerja = () => {
   const {
-    dataKomplain,
-    getMonthName,
+    data,
+    loading,
+    error,
     setSelectedMonth,
-    loadingKomplain,
-    errorKomplain,
+    getMonthName,
+    availableMonths,
+    selectedMonth,
+    selectedYear
   } = useNewData();
 
   const totalComplaints = useMemo(() => {
-    if (!dataKomplain || !dataKomplain.jumlahPetugas) return 0;
-    return Object.values(dataKomplain.jumlahPetugas).reduce((acc, value) => acc + value, 0);
-  }, [dataKomplain]);
+    if (!data || !data.petugasCounts) return 0;
+    return Object.values(data.petugasCounts).reduce((acc, value) => acc + value, 0);
+  }, [data]);
 
   const tableData = useMemo(() => {
-    if (!dataKomplain || !dataKomplain.jumlahPetugas) return [];
+    if (!data || !data.petugasCounts) return [];
     return fixedOrder.map(name => ({
       nama: name,
-      jumlahPengerjaan: dataKomplain.jumlahPetugas[name] || 0,
-      kontribusi: ((dataKomplain.jumlahPetugas[name] / totalComplaints) * 100).toFixed(2) + '%',
+      jumlahPengerjaan: data.petugasCounts[name] || 0,
+      kontribusi: ((data.petugasCounts[name] / totalComplaints) * 100).toFixed(2) + '%',
     }));
-  }, [dataKomplain, totalComplaints]);
+  }, [data, totalComplaints]);
 
   const barChartConfig = useMemo(() => {
-    if (!dataKomplain || !dataKomplain.jumlahPetugas) return { labels: [], datasets: [] };
+    if (!data || !data.petugasCounts) return { labels: [], datasets: [] };
 
     const labels = fixedOrder;
-    const data = labels.map(name => dataKomplain.jumlahPetugas[name] || 0);
-    const backgroundColor = labels.map(name => petugasColors[name] || '#D3D3D3'); // Default color if name not found
+    const chartData = labels.map(name => data.petugasCounts[name] || 0);
+    const backgroundColor = labels.map(name => petugasColors[name] || '#D3D3D3');
 
     return {
       labels,
       datasets: [{
         label: 'Jumlah Pengerjaan Petugas',
-        data,
+        data: chartData,
         backgroundColor,
       }]
     };
-  }, [dataKomplain]);
+  }, [data]);
 
-  const pieChartConfig = useMemo(() => {
-    if (!dataKomplain || !dataKomplain.jumlahPetugas) return { labels: [], datasets: [] };
-
-    const labels = fixedOrder;
-    const data = labels.map(name => ((dataKomplain.jumlahPetugas[name] || 0) / totalComplaints * 100).toFixed(2)); // Percentage data
-    const backgroundColor = labels.map(name => petugasColors[name] || '#D3D3D3'); // Default color if name not found
-
-    return {
-      labels,
-      datasets: [{
-        label: 'Kontribusi Petugas (%)',
-        data,
-        backgroundColor,
-      }]
-    };
-  }, [dataKomplain, totalComplaints]);
-
-  if (loadingKomplain) {
+  if (loading) {
     return <Loading />;
   }
 
-  if (errorKomplain) return <div className="text-red-500">{errorKomplain.message}</div>;
+  if (error) return <div className="text-red-500">{error.message}</div>;
 
-  if (!dataKomplain) {
+  if (!data) {
     return <div>No data available</div>;
   }
+
+  const lastUpdateTime = data.lastUpdateTime;
 
   return (
     <>
       <div className='px-4 flex-1 pt-1 mb-5'>
         <Header
-          title={`Laporan Kinerja Petugas Bulan ${getMonthName(dataKomplain.selectedMonth)}`}
-          selectedMonth={dataKomplain.selectedMonth}
+          title={`Laporan Kinerja Petugas Bulan ${getMonthName(selectedMonth)}`}
+          selectedMonth={selectedMonth}
           setSelectedMonth={setSelectedMonth}
           getMonthName={getMonthName}
-          availableMonths={dataKomplain.availableMonths}
+          availableMonths={availableMonths}
+          lastUpdateTime={lastUpdateTime}
         />
         <h3 className='mt-5 lg:mt-2 text-lg font-bold text-white'>
-          <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${totalComplaints}`}</span>
+          <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${data.totalComplaints}`}</span>
         </h3>
 
         <div className="mt-10">
-          <div className="flex flex-col lg:flex-row lg:justify-between gap-6 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow-lg flex-1">
-              <h3 className="font-semibold text-sm mb-4">Grafik Kinerja Petugas</h3>
-              <div style={{ width: '100%', height: 300 }}>
-                <Bar data={barChartConfig} options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      ticks: {
-                        font: {
-                          size: 10,
-                        },
-                      },
-                    },
-                    x: {
-                      ticks: {
-                        font: {
-                          size: 10,
-                        },
+          <div className="bg-white p-4 rounded-lg shadow-lg flex-1">
+            <h3 className="font-semibold text-sm mb-4">Grafik Kinerja Petugas</h3>
+            <div style={{ width: '100%', height: 300 }}>
+              <Bar data={barChartConfig} options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      font: {
+                        size: 10,
                       },
                     },
                   },
-                  plugins: {
-                    legend: {
-                      display: false,
+                  x: {
+                    ticks: {
+                      font: {
+                        size: 10,
+                      },
                     },
                   },
-                }} />
-              </div>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-lg flex-1 mt-6 lg:mt-0">
-              <h3 className="font-semibold text-sm mb-4">Grafik Kontribusi Petugas (%)</h3>
-              <div style={{ width: '100%', height: 300 }}>
-                <Pie data={pieChartConfig} options={pieChartOptions} />
-              </div>
+                },
+                plugins: {
+                  legend: {
+                    display: false,
+                  },
+                },
+              }} />
             </div>
           </div>
           <Tables data={tableData} />
