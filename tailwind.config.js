@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        "soft-green": "#FAFFF8",
-        green: "#C1FDBB",
+        "soft-green": "#F7FFF4",
+        "green": "#C1FDBB",
         "light-green": "#209B1E",
       },
       transitionProperty: {

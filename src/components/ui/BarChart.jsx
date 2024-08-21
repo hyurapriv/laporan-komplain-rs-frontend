@@ -55,9 +55,9 @@ const BarChart = ({ data }) => {
       },
       title: {
         display: true,
-        text: 'Total Komplain Berdasarkan Kategori',
+        text: 'Total Komplain Berdasarkan Unit',
         font: {
-          size: 13,
+          size: 15,
           weight: 'bold'
         },
         padding: {

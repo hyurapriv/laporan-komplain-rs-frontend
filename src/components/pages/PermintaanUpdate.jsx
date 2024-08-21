@@ -1,6 +1,5 @@
 import React, { useMemo, Suspense, lazy } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import useNewData from '../hooks/useNewData';
+import useUpdateRequest from '../hooks/useUpdateRequest';
 import { IoSendSharp } from "react-icons/io5";
 import { FaTools, FaCheckCircle } from "react-icons/fa";
 import { MdPendingActions, MdOutlineAccessTimeFilled } from "react-icons/md";
@@ -10,48 +9,45 @@ import Footer from '../layouts/Footer';
 const Loading = lazy(() => import('../ui/Loading'));
 const Card = lazy(() => import('../ui/Card'));
 const BarChart = lazy(() => import('../ui/BarChart'));
+const DailyRequestsLineChart = lazy(() => import('../ui/LineChart'));
+
+// Function to format time from minutes to hours and minutes
+const formatTime = (minutes) => {
+  if (minutes < 60) {
+    return `${Math.round(minutes)} menit`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const mins = Math.round(minutes % 60);
+  return `${hours} jam ${mins} menit`;
+};
 
 const PermintaanUpdate = () => {
-  const queryClient = useQueryClient();
   const {
-    dataUpdate,
+    data,
     error,
     loading,
     setSelectedMonth,
+    setSelectedYear,
     getMonthName,
     selectedMonth,
-  } = useNewData();
-
-  // Ensure selectedMonth is within the available months
-  React.useEffect(() => {
-    if (dataUpdate?.availableMonths && !dataUpdate.availableMonths.includes(selectedMonth)) {
-      setSelectedMonth(dataUpdate.availableMonths[0]); // Set to the first available month if current month is not available
-    }
-  }, [dataUpdate, selectedMonth, setSelectedMonth]);
+    selectedYear,
+    availableMonths,
+  } = useUpdateRequest();
 
   const cards = useMemo(() => {
-    const { jumlahStatus = {}, rerataResponTime = {} } = dataUpdate || {};
+    const { totalStatus = {}, averageResponseTime } = data || {};
     return [
-      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-green', value: jumlahStatus?.Terkirim || 0 },
-      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-green', value: jumlahStatus?.Proses || 0 },
-      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: jumlahStatus?.Selesai || 0 },
-      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-green', value: jumlahStatus?.Pending || 0 },
-      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-green', value: rerataResponTime?.formatted || 'N/A' },
+      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-sky-200', value: totalStatus?.Terkirim || 0 },
+      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-yellow-200', value: totalStatus?.['Dalam Pengerjaan / Pengecekan Petugas'] || 0 },
+      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.Selesai || 0 },
+      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.Pending || 0 },
+      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: formatTime(averageResponseTime || 0) },
     ];
-  }, [dataUpdate]);
+  }, [data]);
 
   const hasData = useMemo(() => {
-    const { totalKomplain, jumlahUnitStatus } = dataUpdate || {};
-    return totalKomplain > 0 && Object.keys(jumlahUnitStatus || {}).length > 0;
-  }, [dataUpdate]);
-
-  const handleMonthChange = (newMonth) => {
-    setSelectedMonth(newMonth);
-    queryClient.prefetchQuery({
-      queryKey: ['updateData', newMonth],
-      queryFn: () => fetchUpdateData(newMonth)
-    });
-  };
+    return data?.totalRequests > 0;
+  }, [data]);
 
   return (
     <>
@@ -59,14 +55,16 @@ const PermintaanUpdate = () => {
         <div className="flex-grow">
           <section className='px-2 lg:px-8 xl:px-4 pt-4 lg:pt-1'>
             <Header
-              title={`Laporan Permintaan Update Data Bulan ${getMonthName(selectedMonth)}`}
+              title={`Laporan Permintaan Update Data Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
               selectedMonth={selectedMonth}
-              setSelectedMonth={handleMonthChange}
+              selectedYear={selectedYear}
+              setSelectedMonth={setSelectedMonth}
+              setSelectedYear={setSelectedYear}
               getMonthName={getMonthName}
-              availableMonths={dataUpdate?.availableMonths || []}
+              availableMonths={availableMonths}
             />
             <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
-              <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan: ${dataUpdate?.totalKomplain || 0}`}</span>
+              <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan: ${data?.totalRequests || 0}`}</span>
             </h3>
             {loading ? (
               <Suspense fallback={<div>Loading...</div>}>
@@ -74,27 +72,21 @@ const PermintaanUpdate = () => {
               </Suspense>
             ) : error ? (
               <div className="text-red-500">{error.message || 'An error occurred'}</div>
-            ) : hasData ? (
+            ) : (
               <>
                 <div className='grid grid-cols-2 md:grid-cols-5 gap-4 mt-8 lg:mt-12'>
                   <Suspense fallback={<div className="text-center py-4">Loading Cards...</div>}>
-                    {cards.slice(0, 4).map((card, index) => (
+                    {cards.map((card, index) => (
                       <Card key={index} {...card} />
                     ))}
-                    <div className="col-span-2 md:col-span-1">
-                      <Card {...cards[4]} />
-                    </div>
                   </Suspense>
                 </div>
-                <Suspense fallback={<div>Loading Chart...</div>}>
-                  {dataUpdate?.jumlahUnitStatus && <BarChart data={dataUpdate.jumlahUnitStatus} />}
+                <Suspense fallback={<div>Loading Daily Requests Chart...</div>}>
+                  <div className='mt-8 lg:mt-12'>
+                    {<DailyRequestsLineChart data={data?.dailyRequests || {}} selectedMonth={selectedMonth} selectedYear={selectedYear} />}
+                  </div>
                 </Suspense>
               </>
-            ) : (
-              <div className="mt-14 text-center text-gray-600">
-                <p className="text-xl">Tidak ada data permintaan update untuk bulan ini.</p>
-                <p className="mt-2">Silakan pilih bulan lain atau periksa kembali data Anda.</p>
-              </div>
             )}
           </section>
         </div>

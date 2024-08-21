@@ -6,7 +6,6 @@ import DataKomplain from './components/pages/Komplain';
 import DataKinerja from './components/pages/DataKinerja';
 import DataUnit from './components/pages/DataUnit';
 import PermintaanUpdate from './components/pages/PermintaanUpdate';
-import UnitPermintaanUpdate from './components/pages/UnitPermintaanUpdate';
 import KinerjaPermintaanUpdate from './components/pages/KinerjaPermintaanUpdate';
 
 function App() {
@@ -44,7 +43,6 @@ function App() {
                 <Route path="/data-unit" element={<DataUnit />} />
                 <Route path="/data-kinerja" element={<DataKinerja />} />
                 <Route path="/perubahan-data" element={<PermintaanUpdate />} />
-                <Route path="/perubahan-data/data-unit" element={<UnitPermintaanUpdate />} />
                 <Route path="/perubahan-data/data-kinerja" element={<KinerjaPermintaanUpdate />} />
               </Routes>
             </div>

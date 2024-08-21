@@ -3,56 +3,42 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
 const POLLING_INTERVAL = 30000; // 30 seconds
-const STALE_TIME = 60000; // 60 seconds (increased from 25 seconds)
+const STALE_TIME = 25000; // 25 seconds
 
-// Definisikan kategori di sini
-const CATEGORIES = {
-  "IGD": ["Ambulance", "IGD"],
-  "Rawat Jalan": [
-    "Klinik Anak",
-    // other clinics...
-  ],
-  "Rawat Inap": ["Irna Atas", "Irna Bawah", "IBS", "VK (bersalin)", "Perinatology"],
-  "Penunjang Medis": ["Farmasi", "Laboratorium", "Admisi / Rekam Medis", "Rehab Medik"],
-  "Lainnya": ["Lainnya"]
-};
-
-// Fetch data function
-const fetchNewData = async (year, month) => {
-  const formattedMonth = month.toString().padStart(2, '0'); // Ensure month is two digits
-  const response = await axios.get('http://localhost:8000/api/new-data', {
+const fetchUpdateRequestData = async (year, month) => {
+  const formattedMonth = month.toString().padStart(2, '0');
+  const response = await axios.get('http://localhost:8000/api/new-update', {
     params: { year, month: formattedMonth }
   });
   return response.data;
 };
 
-const useNewData = () => {
+const useUpdateRequest = () => {
   const queryClient = useQueryClient();
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
 
   const { data, error, isLoading } = useQuery({
-    queryKey: ['newData', selectedYear, selectedMonth],
-    queryFn: () => fetchNewData(selectedYear, selectedMonth),
+    queryKey: ['updateRequestData', selectedYear, selectedMonth],
+    queryFn: () => fetchUpdateRequestData(selectedYear, selectedMonth),
     staleTime: STALE_TIME,
-    cacheTime: 60000, // Cache data for 60 seconds
     refetchInterval: POLLING_INTERVAL,
   });
 
   const setSelectedMonthAndFetch = useCallback((month) => {
     setSelectedMonth(month);
     queryClient.prefetchQuery({
-      queryKey: ['newData', selectedYear, month],
-      queryFn: () => fetchNewData(selectedYear, month)
+      queryKey: ['updateRequestData', selectedYear, month],
+      queryFn: () => fetchUpdateRequestData(selectedYear, month)
     });
   }, [queryClient, selectedYear]);
 
   const setSelectedYearAndFetch = useCallback((year) => {
     setSelectedYear(year);
     queryClient.prefetchQuery({
-      queryKey: ['newData', year, selectedMonth],
-      queryFn: () => fetchNewData(year, selectedMonth)
+      queryKey: ['updateRequestData', year, selectedMonth],
+      queryFn: () => fetchUpdateRequestData(year, selectedMonth)
     });
   }, [queryClient, selectedMonth]);
 
@@ -64,15 +50,6 @@ const useNewData = () => {
     return data?.availableMonths || [];
   }, [data]);
 
-  const getCategoryName = (unit) => {
-    for (const [category, units] of Object.entries(CATEGORIES)) {
-      if (units.includes(unit)) {
-        return category;
-      }
-    }
-    return "Lainnya";
-  };
-
   return {
     data: data?.data,
     loading: isLoading,
@@ -83,9 +60,7 @@ const useNewData = () => {
     availableMonths,
     selectedMonth,
     selectedYear,
-    getCategoryName,
-    lastUpdateTime: data?.lastUpdateTime // Ensure this is correctly provided
   };
 };
 
-export default useNewData;
+export default useUpdateRequest;

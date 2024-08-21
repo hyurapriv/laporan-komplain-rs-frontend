@@ -31,7 +31,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       { name: 'Data Kinerja', icon: <BsPersonWorkspace />, path: '/data-kinerja' },
     ],
     '/perubahan-data': [
-      { name: 'Data Unit', icon: <GiFirstAidKit />, path: '/perubahan-data/data-unit' },
       { name: 'Data Kinerja', icon: <BsPersonWorkspace />, path: '/perubahan-data/data-kinerja' },
     ]
   };
