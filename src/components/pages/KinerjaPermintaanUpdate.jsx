@@ -105,7 +105,7 @@ const KinerjaPermintaanUpdate = () => {
           availableMonths={availableMonths}
         />
         <h3 className='mt-5 lg:mt-2 text-lg font-bold text-white'>
-          <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${data.totalRequests}`}</span>
+          <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan: ${data.totalRequests}`}</span>
         </h3>
 
         <div className="mt-10">

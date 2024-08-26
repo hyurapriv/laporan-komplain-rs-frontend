@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, Suspense, lazy } from 'react';
+import React, { useMemo, useEffect, Suspense, lazy, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import useNewData from '../hooks/useNewData';
 import { IoSendSharp } from "react-icons/io5";
@@ -10,6 +10,7 @@ import Footer from '../layouts/Footer';
 const Loading = lazy(() => import('../ui/Loading'));
 const Card = lazy(() => import('../ui/Card'));
 const BarChart = lazy(() => import('../ui/BarChart'));
+const Modal = lazy(() => import('../ui/Modal'));
 
 const Komplain = () => {
   const queryClient = useQueryClient();
@@ -22,8 +23,13 @@ const Komplain = () => {
     getMonthName,
     availableMonths,
     selectedMonth,
-    selectedYear
+    selectedYear,
+    detailData
   } = useNewData();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState([]);
+  const [modalTitle, setModalTitle] = useState('');
 
   useEffect(() => {
     console.log("Data Komplain:", dataKomplain);
@@ -42,11 +48,11 @@ const Komplain = () => {
   const cards = useMemo(() => {
     const { totalStatus = {}, overallAverageResponTime = '' } = dataKomplain || {};
     return [
-      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-sky-200', value: totalStatus?.Terkirim || 0 },
-      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-yellow-200', value: totalStatus?.["Dalam Pengerjaan / Pengecekan Petugas"] || 0 },
-      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.Selesai || 0 },
-      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.Pending || 0 },
-      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: overallAverageResponTime || 'N/A' },
+      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-sky-200', value: totalStatus?.Terkirim || 0, hasDetail: true, detailType: 'terkirim' },
+      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-yellow-200', value: totalStatus?.["Dalam Pengerjaan / Pengecekan Petugas"] || 0, hasDetail: true, detailType: 'proses' },
+      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.Selesai || 0, hasDetail: false },
+      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.Pending || 0, hasDetail: true, detailType: 'pending' },
+      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: overallAverageResponTime || 'N/A', hasDetail: false },
     ];
   }, [dataKomplain]);
 
@@ -54,6 +60,12 @@ const Komplain = () => {
     const { totalStatus } = dataKomplain || {};
     return Object.keys(totalStatus || {}).length > 0;
   }, [dataKomplain]);
+
+  const openModal = (type) => {
+    setModalData(detailData[type]);
+    setModalTitle(`Detail ${type.charAt(0).toUpperCase() + type.slice(1)}`);
+    setModalOpen(true);
+  };
 
   // Example: Set lastUpdateTime to current time for demonstration purposes
   const lastUpdateTime = new Date().toISOString(); // Replace with actual last update time
@@ -91,14 +103,24 @@ const Komplain = () => {
               <>
                 <div className='grid grid-cols-2 md:grid-cols-5 gap-4 mt-8 lg:mt-12'>
                   <Suspense fallback={<div className="text-center py-4">Loading Cards...</div>}>
-                    {cards.slice(0, 4).map((card, index) => (
-                      <Card key={index} {...card} />
+                    {cards.map((card, index) => (
+                      <div key={index} className={card.hasDetail ? "cursor-pointer" : ""} onClick={card.hasDetail ? () => openModal(card.detailType) : undefined}>
+                        <Card {...card} className={card.hasDetail ? "hover:scale-105" : ""} />
+                        {card.hasDetail && (
+                          <div className="absolute inset-0 pointer-events-none"></div>
+                        )}
+                      </div>
                     ))}
-                    <div className="col-span-2 md:col-span-1">
-                      <Card {...cards[4]} />
-                    </div>
                   </Suspense>
                 </div>
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Modal
+                    isOpen={modalOpen}
+                    onClose={() => setModalOpen(false)}
+                    data={modalData}
+                    title={modalTitle}
+                  />
+                </Suspense>
                 <Suspense fallback={<div className="text-center py-8">Loading Bar Chart...</div>}>
                   {dataKomplain?.categories && (
                     <div className="mt-8 lg:mt-12">

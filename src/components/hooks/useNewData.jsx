@@ -64,6 +64,14 @@ const useNewData = () => {
     return data?.availableMonths || [];
   }, [data]);
 
+  const detailData = useMemo(() => {
+    return {
+      terkirim: data?.detailData?.detailDataTerkirim || [],
+      proses: data?.detailData?.detailDataProses || [],
+      pending: data?.detailData?.detailDataPending || []
+    };
+  }, [data]);
+
   const getCategoryName = (unit) => {
     for (const [category, units] of Object.entries(CATEGORIES)) {
       if (units.includes(unit)) {
@@ -84,6 +92,7 @@ const useNewData = () => {
     selectedMonth,
     selectedYear,
     getCategoryName,
+    detailData,
     lastUpdateTime: data?.lastUpdateTime // Ensure this is correctly provided
   };
 };
