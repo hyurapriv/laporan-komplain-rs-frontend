@@ -52,12 +52,21 @@ const useUpdateRequest = () => {
 
   return {
     data: data?.data,
+    petugasCounts: data?.data?.petugasCounts,
+    totalStatus: data?.data?.totalStatus,
+    totalRequests: data?.data?.totalRequests,
+    dailyRequests: data?.data?.dailyRequests,
+    averageResponseTime: data?.data?.averageResponseTime,
+    averageCompletedResponseTime: data?.data?.averageCompletedResponseTime,
+    availableMonths,
+    detailDataTerkirim: data?.detailDataTerkirim,
+    detailDataProses: data?.detailDataProses,
+    detailDataPending: data?.detailDataPending,
     loading: isLoading,
     error,
     setSelectedMonth: setSelectedMonthAndFetch,
     setSelectedYear: setSelectedYearAndFetch,
     getMonthName,
-    availableMonths,
     selectedMonth,
     selectedYear,
   };
