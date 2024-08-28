@@ -63,6 +63,12 @@ const KinerjaPermintaanUpdate = () => {
     }));
   }, [data, totalRequests]);
 
+  const handleMonthYearChange = (value) => {
+    const [year, month] = value.split('-');
+    setSelectedYear(parseInt(year, 10));
+    setSelectedMonth(parseInt(month, 10));
+  };
+
   const barChartConfig = useMemo(() => {
     if (!data || !data.petugasCounts) return { labels: [], datasets: [] };
 
@@ -96,14 +102,12 @@ const KinerjaPermintaanUpdate = () => {
     <>
       <div className='px-4 flex-1 pt-1 mb-5'>
         <Header
-          title={`Laporan Kinerja Petugas Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
-          selectedMonth={selectedMonth}
-          selectedYear={selectedYear}
-          setSelectedMonth={setSelectedMonth}
-          setSelectedYear={setSelectedYear}
+          title={`Laporan Permintaan Update Data Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
+          selectedMonth={`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`}
+          setSelectedMonth={handleMonthYearChange}
           getMonthName={getMonthName}
           availableMonths={availableMonths}
-          lastUpdateTime={lastUpdateTime}
+          lastUpdateTime={data?.lastUpdateTime}
         />
         <h3 className='mt-5 lg:mt-2 text-lg font-bold text-white'>
           <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan: ${data.totalRequests}`}</span>
