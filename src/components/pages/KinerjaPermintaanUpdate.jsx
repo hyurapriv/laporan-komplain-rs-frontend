@@ -49,7 +49,7 @@ const KinerjaPermintaanUpdate = () => {
     selectedYear
   } = useUpdateRequest();
 
-  const totalComplaints = useMemo(() => {
+  const totalRequests = useMemo(() => {
     if (!data || !data.petugasCounts) return 0;
     return Object.values(data.petugasCounts).reduce((acc, value) => acc + value, 0);
   }, [data]);
@@ -59,9 +59,9 @@ const KinerjaPermintaanUpdate = () => {
     return fixedOrder.map(name => ({
       nama: name,
       jumlahPengerjaan: data.petugasCounts[name] || 0,
-      kontribusi: totalComplaints > 0 ? ((data.petugasCounts[name] / totalComplaints) * 100).toFixed(2) + '%' : '0%',
+      kontribusi: totalRequests > 0 ? ((data.petugasCounts[name] / totalRequests) * 100).toFixed(2) + '%' : '0%',
     }));
-  }, [data, totalComplaints]);
+  }, [data, totalRequests]);
 
   const barChartConfig = useMemo(() => {
     if (!data || !data.petugasCounts) return { labels: [], datasets: [] };
@@ -103,6 +103,7 @@ const KinerjaPermintaanUpdate = () => {
           setSelectedYear={setSelectedYear}
           getMonthName={getMonthName}
           availableMonths={availableMonths}
+          lastUpdateTime={lastUpdateTime}
         />
         <h3 className='mt-5 lg:mt-2 text-lg font-bold text-white'>
           <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan: ${data.totalRequests}`}</span>

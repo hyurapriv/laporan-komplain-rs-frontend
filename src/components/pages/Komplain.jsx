@@ -24,7 +24,9 @@ const Komplain = () => {
     availableMonths,
     selectedMonth,
     selectedYear,
-    detailData
+    detailData,
+    fetchData,
+    lastUpdateTime
   } = useNewData();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -32,18 +34,16 @@ const Komplain = () => {
   const [modalTitle, setModalTitle] = useState('');
 
   useEffect(() => {
-    console.log("Data Komplain:", dataKomplain);
-    console.log("Available Months:", availableMonths);
-    console.log("Selected Month:", selectedMonth);
-    console.log("Selected Year:", selectedYear);
-
-    if (availableMonths && availableMonths.length > 0 && !availableMonths.includes(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`)) {
-      const [latestYear, latestMonth] = availableMonths[0].split('-');
-      console.log("Updating to latest available month:", latestYear, latestMonth);
-      setSelectedYear(parseInt(latestYear, 10));
-      setSelectedMonth(latestMonth);
+    if (availableMonths && availableMonths.length > 0) {
+      const currentMonthYear = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+      if (!availableMonths.includes(currentMonthYear)) {
+        const [latestYear, latestMonth] = availableMonths[0].split('-');
+        setSelectedYear(parseInt(latestYear, 10));
+        setSelectedMonth(latestMonth);
+        fetchData(parseInt(latestYear, 10), latestMonth);
+      }
     }
-  }, [availableMonths, selectedMonth, selectedYear, setSelectedMonth, setSelectedYear, dataKomplain]);
+  }, [availableMonths, selectedMonth, selectedYear, setSelectedMonth, setSelectedYear, fetchData]);
 
   const cards = useMemo(() => {
     const { totalStatus = {}, overallAverageResponTime = '' } = dataKomplain || {};
@@ -67,8 +67,12 @@ const Komplain = () => {
     setModalOpen(true);
   };
 
-  // Example: Set lastUpdateTime to current time for demonstration purposes
-  const lastUpdateTime = new Date().toISOString(); // Replace with actual last update time
+  const handleMonthChange = (value) => {
+    const [year, month] = value.split('-');
+    setSelectedYear(parseInt(year, 10));
+    setSelectedMonth(month);
+    fetchData(parseInt(year, 10), month);
+  };
 
   return (
     <>
@@ -76,16 +80,12 @@ const Komplain = () => {
         <div className="flex-grow">
           <section className='px-2 lg:px-8 xl:px-4 pt-4 lg:pt-1'>
             <Header
-              title={`Laporan Komplain IT Bulan ${getMonthName(parseInt(selectedMonth, 10))} ${selectedYear}`}
+              title={`Laporan Komplain IT Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
               selectedMonth={`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`}
-              setSelectedMonth={(value) => {
-                const [year, month] = value.split('-');
-                setSelectedYear(parseInt(year, 10));
-                setSelectedMonth(month);
-              }}
+              setSelectedMonth={setSelectedMonth}
               getMonthName={getMonthName}
-              availableMonths={availableMonths || []}
-              lastUpdateTime={dataKomplain?.lastUpdateTime} // Ensure this is correctly set
+              availableMonths={availableMonths}
+              lastUpdateTime={lastUpdateTime}
             />
 
             <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>

@@ -3,23 +3,33 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
 const POLLING_INTERVAL = 30000; // 30 seconds
-const STALE_TIME = 60000; // 60 seconds (increased from 25 seconds)
+const STALE_TIME = 60000; // 60 seconds
 
-// Definisikan kategori di sini
 const CATEGORIES = {
   "IGD": ["Ambulance", "IGD"],
   "Rawat Jalan": [
     "Klinik Anak",
-    // other clinics...
+    "Klinik Bedah",
+    "Klinik Gigi",
+    "Klinik Jantung",
+    "Klinik Konservasi",
+    "Klinik Kulit",
+    "Klinik Kusta",
+    "Klinik Mata",
+    "Klinik Obgyn",
+    "Klinik Ortopedy",
+    "Klinik Penyakit Dalam",
+    "Klinik TB",
+    "Klinik THT",
+    "Klinik Umum"
   ],
-  "Rawat Inap": ["Irna Atas", "Irna Bawah", "IBS", "VK (bersalin)", "Perinatology"],
+  "Rawat Inap": ["Irna Atas", "Irna Bawah", "IBS", "VK", "Perinatology"],
   "Penunjang Medis": ["Farmasi", "Laboratorium", "Admisi / Rekam Medis", "Rehab Medik"],
   "Lainnya": ["Lainnya"]
 };
 
-// Fetch data function
 const fetchNewData = async (year, month) => {
-  const formattedMonth = month.toString().padStart(2, '0'); // Ensure month is two digits
+  const formattedMonth = month.toString().padStart(2, '0');
   const response = await axios.get('http://localhost:8000/api/new-data', {
     params: { year, month: formattedMonth }
   });
@@ -36,25 +46,19 @@ const useNewData = () => {
     queryKey: ['newData', selectedYear, selectedMonth],
     queryFn: () => fetchNewData(selectedYear, selectedMonth),
     staleTime: STALE_TIME,
-    cacheTime: 60000, // Cache data for 60 seconds
+    cacheTime: 60000,
     refetchInterval: POLLING_INTERVAL,
   });
 
-  const setSelectedMonthAndFetch = useCallback((month) => {
-    setSelectedMonth(month);
+  const setSelectedMonthAndFetch = useCallback((monthYear) => {
+    const [year, month] = monthYear.split('-');
+    setSelectedYear(parseInt(year, 10));
+    setSelectedMonth(parseInt(month, 10));
     queryClient.prefetchQuery({
-      queryKey: ['newData', selectedYear, month],
-      queryFn: () => fetchNewData(selectedYear, month)
+      queryKey: ['newData', parseInt(year, 10), parseInt(month, 10)],
+      queryFn: () => fetchNewData(parseInt(year, 10), parseInt(month, 10))
     });
-  }, [queryClient, selectedYear]);
-
-  const setSelectedYearAndFetch = useCallback((year) => {
-    setSelectedYear(year);
-    queryClient.prefetchQuery({
-      queryKey: ['newData', year, selectedMonth],
-      queryFn: () => fetchNewData(year, selectedMonth)
-    });
-  }, [queryClient, selectedMonth]);
+  }, [queryClient]);
 
   const getMonthName = useCallback((monthNumber) => {
     return new Date(selectedYear, monthNumber - 1).toLocaleString('id-ID', { month: 'long' });
@@ -86,14 +90,13 @@ const useNewData = () => {
     loading: isLoading,
     error,
     setSelectedMonth: setSelectedMonthAndFetch,
-    setSelectedYear: setSelectedYearAndFetch,
     getMonthName,
     availableMonths,
     selectedMonth,
     selectedYear,
     getCategoryName,
     detailData,
-    lastUpdateTime: data?.lastUpdateTime // Ensure this is correctly provided
+    lastUpdateTime: data?.lastUpdateTime
   };
 };
 

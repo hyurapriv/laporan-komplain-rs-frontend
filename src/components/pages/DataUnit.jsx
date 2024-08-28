@@ -53,7 +53,8 @@ const DataUnit = () => {
     loading,
     selectedMonth,
     selectedYear,
-    availableMonths
+    availableMonths,
+    lastUpdateTime
   } = useNewData();
 
   const [selectedUnit, setSelectedUnit] = useState('');
@@ -253,11 +254,12 @@ const DataUnit = () => {
     <>
       <section className="px-4 flex-1 pt-1">
         <Header
-          title={`Laporan Komplain IT Unit ${selectedUnit || ''} Bulan ${getMonthName(parseInt(selectedMonth, 10))} ${selectedYear}`}
+          title={`Laporan Komplain IT Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
           selectedMonth={`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`}
-          setSelectedMonth={handleMonthChange}
+          setSelectedMonth={setSelectedMonth}
           getMonthName={getMonthName}
-          availableMonths={availableMonths || []}
+          availableMonths={availableMonths}
+          lastUpdateTime={lastUpdateTime}
         />
         <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
           <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${totalKomplainForUnit}`}</span>
