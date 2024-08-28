@@ -62,8 +62,17 @@ const Komplain = () => {
   }, [dataKomplain]);
 
   const openModal = (type) => {
+
     setModalData(detailData[type]);
-    setModalTitle(`Detail ${type.charAt(0).toUpperCase() + type.slice(1)}`);
+
+     
+    const titleMap = {
+      terkirim: 'Detail Data Menunggu',
+      proses: 'Detail Data Proses',
+      pending: 'Detail Data Pending',
+    };
+    setModalTitle(titleMap[type] || `Detail Data ${type.charAt(0).toUpperCase() + type.slice(1)}`);
+
     setModalOpen(true);
   };
 
