@@ -48,11 +48,11 @@ const Komplain = () => {
   const cards = useMemo(() => {
     const { totalStatus = {}, overallAverageResponTime = '' } = dataKomplain || {};
     return [
-      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-sky-200', value: totalStatus?.Terkirim || 0, hasDetail: true, detailType: 'terkirim', tooltipMessage: 'Jumlah komplain yang menunggu tanggapan.' },
-      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-yellow-200', value: totalStatus?.["Dalam Pengerjaan / Pengecekan Petugas"] || 0, hasDetail: true, detailType: 'proses', tooltipMessage: 'Jumlah komplain yang sedang diproses.' },
-      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.Selesai || 0, hasDetail: false, tooltipMessage: 'Jumlah komplain yang sudah selesai.' },
-      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.Pending || 0, hasDetail: true, detailType: 'pending', tooltipMessage: 'Jumlah komplain yang ditunda.' },
-      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: overallAverageResponTime || 'N/A', hasDetail: false, tooltipMessage: 'Rata-rata waktu respon untuk komplain.' },
+      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-sky-200', value: totalStatus?.Terkirim || 0, hasDetail: true, detailType: 'terkirim', tooltipText: 'Jumlah komplain yang terkirim, namun belum diproses oleh tim IT.' },
+      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-yellow-200', value: totalStatus?.["Dalam Pengerjaan / Pengecekan Petugas"] || 0, hasDetail: true, detailType: 'proses', tooltipText: 'Jumlah komplain yang sedang diproses oleh tim IT.' },
+      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.Selesai || 0, hasDetail: false, tooltipText: 'Jumlah komplain yang sudah berhasil diselesaikan.' },
+      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.Pending || 0, hasDetail: true, detailType: 'pending', tooltipText: 'Jumlah komplain yang ditunda.' },
+      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: overallAverageResponTime || 'N/A', hasDetail: false, tooltipText: 'Rata-rata waktu respon untuk menangani komplain.' },
     ];
   }, [dataKomplain]);
 
@@ -65,13 +65,6 @@ const Komplain = () => {
     setModalData(detailData[type]);
     setModalTitle(`Detail ${type.charAt(0).toUpperCase() + type.slice(1)}`);
     setModalOpen(true);
-  };
-
-  const handleMonthChange = (value) => {
-    const [year, month] = value.split('-');
-    setSelectedYear(parseInt(year, 10));
-    setSelectedMonth(month);
-    fetchData(parseInt(year, 10), month);
   };
 
   return (
@@ -104,12 +97,11 @@ const Komplain = () => {
                 <div className='grid grid-cols-2 md:grid-cols-5 gap-4 mt-8 lg:mt-12'>
                   <Suspense fallback={<div className="text-center py-4">Loading Cards...</div>}>
                     {cards.map((card, index) => (
-                      <div key={index} className={card.hasDetail ? "cursor-pointer" : ""} onClick={card.hasDetail ? () => openModal(card.detailType) : undefined}>
-                        <Card {...card} className={card.hasDetail ? "hover:scale-105" : ""} />
-                        {card.hasDetail && (
-                          <div className="absolute inset-0 pointer-events-none"></div>
-                        )}
-                      </div>
+                      <Card
+                        key={index}
+                        {...card}
+                        onClick={card.hasDetail ? () => openModal(card.detailType) : undefined}
+                      />
                     ))}
                   </Suspense>
                 </div>

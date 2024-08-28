@@ -1,10 +1,12 @@
-// Tooltip.js
 import React from 'react';
 
-const Tooltip = ({ message }) => {
+const Tooltip = ({ message, isVisible }) => {
+  if (!isVisible) return null;
+  
   return (
-    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full mt-2 w-48 p-2 bg-gray-800 text-white text-sm rounded-lg shadow-lg">
-      {message}
+    <div className="tooltip">
+      <div className="tooltip-content">{message}</div>
+      <div className="tooltip-arrow" />
     </div>
   );
 };
