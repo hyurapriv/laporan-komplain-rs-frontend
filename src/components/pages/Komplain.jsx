@@ -48,11 +48,11 @@ const Komplain = () => {
   const cards = useMemo(() => {
     const { totalStatus = {}, overallAverageResponTime = '' } = dataKomplain || {};
     return [
-      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-sky-200', value: totalStatus?.Terkirim || 0, hasDetail: true, detailType: 'terkirim' },
-      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-yellow-200', value: totalStatus?.["Dalam Pengerjaan / Pengecekan Petugas"] || 0, hasDetail: true, detailType: 'proses' },
-      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.Selesai || 0, hasDetail: false },
-      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.Pending || 0, hasDetail: true, detailType: 'pending' },
-      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: overallAverageResponTime || 'N/A', hasDetail: false },
+      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-sky-200', value: totalStatus?.Terkirim || 0, hasDetail: true, detailType: 'terkirim', tooltipMessage: 'Jumlah komplain yang menunggu tanggapan.' },
+      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-yellow-200', value: totalStatus?.["Dalam Pengerjaan / Pengecekan Petugas"] || 0, hasDetail: true, detailType: 'proses', tooltipMessage: 'Jumlah komplain yang sedang diproses.' },
+      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.Selesai || 0, hasDetail: false, tooltipMessage: 'Jumlah komplain yang sudah selesai.' },
+      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.Pending || 0, hasDetail: true, detailType: 'pending', tooltipMessage: 'Jumlah komplain yang ditunda.' },
+      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: overallAverageResponTime || 'N/A', hasDetail: false, tooltipMessage: 'Rata-rata waktu respon untuk komplain.' },
     ];
   }, [dataKomplain]);
 
