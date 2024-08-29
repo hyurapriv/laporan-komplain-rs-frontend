@@ -56,11 +56,12 @@ const KinerjaPermintaanUpdate = () => {
 
   const tableData = useMemo(() => {
     if (!data || !data.petugasCounts) return [];
-    return fixedOrder.map(name => ({
+    const unsortedData = fixedOrder.map(name => ({
       nama: name,
       jumlahPengerjaan: data.petugasCounts[name] || 0,
       kontribusi: totalRequests > 0 ? ((data.petugasCounts[name] / totalRequests) * 100).toFixed(2) + '%' : '0%',
     }));
+    return unsortedData.sort((a, b) => b.jumlahPengerjaan - a.jumlahPengerjaan);
   }, [data, totalRequests]);
 
   const handleMonthYearChange = (value) => {

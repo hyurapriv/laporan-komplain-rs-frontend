@@ -53,11 +53,12 @@ const DataKinerja = () => {
 
   const tableData = useMemo(() => {
     if (!data || !data.petugasCounts) return [];
-    return fixedOrder.map(name => ({
+    const unsortedData = fixedOrder.map(name => ({
       nama: name,
       jumlahPengerjaan: data.petugasCounts[name] || 0,
       kontribusi: ((data.petugasCounts[name] || 0) / totalComplaints * 100).toFixed(2) + '%',
     }));
+    return unsortedData.sort((a, b) => b.jumlahPengerjaan - a.jumlahPengerjaan);
   }, [data, totalComplaints]);
 
   const barChartConfig = useMemo(() => {
