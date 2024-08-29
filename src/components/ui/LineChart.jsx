@@ -46,7 +46,7 @@ const DailyRequestsLineChart = ({ data, selectedMonth, selectedYear }) => {
           <YAxis />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
-          <Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 8 }} />
+          <Line type="monotone" dataKey="count" name="Jumlah" stroke="#8884d8" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 8 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>

@@ -26,10 +26,23 @@ const BarChart = ({ data }) => {
       return { labels: [], datasets: [] };
     }
 
-    const labels = Object.keys(data);
-    const values = labels.map(category => 
-      Object.values(data[category]).reduce((acc, unit) => acc + unit.Total, 0)
-    );
+    const processedData = {};
+    let lainnyaTotal = 0;
+
+    Object.entries(data).forEach(([category, units]) => {
+      if (category.toLowerCase().includes('lainnya')) {
+        lainnyaTotal += Object.values(units).reduce((acc, unit) => acc + unit.Total, 0);
+      } else {
+        processedData[category] = Object.values(units).reduce((acc, unit) => acc + unit.Total, 0);
+      }
+    });
+
+    if (lainnyaTotal > 0) {
+      processedData['Lainnya'] = lainnyaTotal;
+    }
+
+    const labels = Object.keys(processedData);
+    const values = Object.values(processedData);
 
     const colors = ['#267db3', '#6dc486', '#fad25e', '#ec6444', '#8561c8'];
     const datasetColor = colors.slice(0, labels.length);
@@ -37,7 +50,7 @@ const BarChart = ({ data }) => {
     return {
       labels,
       datasets: [{
-        label: 'Total Complaints',
+        label: 'Total Komplain',
         data: values,
         backgroundColor: datasetColor,
       }]
@@ -68,7 +81,7 @@ const BarChart = ({ data }) => {
       tooltip: {
         callbacks: {
           label: function (context) {
-            let label = context.label || '';
+            let label = context.dataset.label || '';
             if (label) {
               label += ': ';
             }

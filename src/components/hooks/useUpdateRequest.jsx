@@ -61,6 +61,7 @@ const useUpdateRequest = () => {
     availableMonths,
     detailDataTerkirim: data?.detailDataTerkirim,
     detailDataProses: data?.detailDataProses,
+    detailDataSelesai: data?.detailDataSelesai,
     detailDataPending: data?.detailDataPending,
     loading: isLoading,
     error,
