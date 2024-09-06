@@ -37,7 +37,7 @@ const createResource = (promise) => {
 const fetchData = async (endpoint, params = {}) => {
   const cacheKey = `${endpoint}_${JSON.stringify(params)}_${CACHE_VERSION}`;
   const cachedData = localStorage.getItem(cacheKey);
-  
+
   if (cachedData) {
     const { data, timestamp } = JSON.parse(cachedData);
     if (Date.now() - timestamp < CACHE_TTL) {
@@ -69,7 +69,7 @@ const useKomplainData = () => {
     const currentDate = new Date();
     const currentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
     const currentYear = currentDate.getFullYear().toString();
-    
+
     if (!selectedMonth) setSelectedMonth(currentMonth);
     if (!selectedYear) setSelectedYear(currentYear);
   }, []);
@@ -82,6 +82,7 @@ const useKomplainData = () => {
         totalStatus: createDataResource('/total-status', { month: selectedMonth, year: selectedYear }),
         totalUnit: createDataResource('/total-unit', { month: selectedMonth, year: selectedYear }),
         detailStatus: createDataResource('/detail-status', { month: selectedMonth, year: selectedYear }),
+        detailUnit: createDataResource('/detail-unit', { month: selectedMonth, year: selectedYear }),
       });
     }
   }, [selectedMonth, selectedYear, createDataResource]);
