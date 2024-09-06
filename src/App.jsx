@@ -10,11 +10,12 @@ const Sidebar = lazy(() => import('./layouts/Sidebar'));
 const Navbar = lazy(() => import('./layouts/Navbar'));
 
 const routes = [
-  { path: '/', component: lazy(() => import('./pages/Komplain')) },
-  { path: '/data-unit', component: lazy(() => import('./pages/DataUnit')) },
-  { path: '/data-kinerja', component: lazy(() => import('./pages/DataKinerja')) },
-  { path: '/perubahan-data', component: lazy(() => import('./pages/PermintaanUpdate')) },
-  { path: '/perubahan-data/data-kinerja', component: lazy(() => import('./pages/KinerjaPermintaanUpdate')) },
+  { path: '/', component: lazy(() => import('./pages/Dashboard')) },
+  { path: '/komplain', component: lazy(() => import('./pages/Komplain')) },
+  { path: '/komplain/data-unit', component: lazy(() => import('./pages/DataUnit')) },
+  { path: '/komplain/data-kinerja', component: lazy(() => import('./pages/DataKinerja')) },
+  { path: '/permintaan-update', component: lazy(() => import('./pages/PermintaanUpdate')) },
+  { path: '/permintaan-update/data-kinerja', component: lazy(() => import('./pages/KinerjaPermintaanUpdate')) },
 ];
 
 const ErrorFallback = ({ error }) => (

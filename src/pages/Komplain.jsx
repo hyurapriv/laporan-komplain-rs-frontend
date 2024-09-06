@@ -90,6 +90,16 @@ const KomplainContent = () => {
     }
   }, [resources.detailStatus]);
 
+  const getIndonesianMonthName = (monthNumber) => {
+    const monthNames = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+    const monthIndex = parseInt(monthNumber, 10) - 1; // Convert to zero-based index
+    return monthNames[monthIndex] || monthNumber; // Fallback to the number if invalid
+  };
+
+
   const renderContent = () => {
     if (isLoading) {
       return <Loading />;
@@ -110,7 +120,7 @@ const KomplainContent = () => {
         { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.total_status?.['Selesai'] || 0, hasDetail: true, detailType: 'selesai', tooltipText: 'Jumlah komplain yang sudah berhasil diselesaikan.' },
         { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.total_status?.['Pending'] || 0, hasDetail: true, detailType: 'pending', tooltipText: 'Jumlah komplain yang ditunda.' },
         { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: totalData?.respon_time || 'N/A', hasDetail: false, tooltipText: 'Rata-rata waktu respon untuk menangani komplain.' },
-        { name: 'Durasi Pengerjaan', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-violet-300', value: totalData?.durasi_pengerjaan || 'N/A', hasDetail: false, tooltipText: 'Rata-rata waktu pengerjaan untuk menyelesaikan komplain.' },
+        { name: 'Durasi Pengerjaan', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-violet-300', value: totalData?.durasi_pengerjaan || 'N/A', hasDetail: false, tooltipText: 'Rata-rata durasi waktu pengerjaan untuk menyelesaikan komplain.' },
       ];
 
       return (
@@ -151,7 +161,7 @@ const KomplainContent = () => {
           <section className='px-2 lg:px-8 xl:px-4 pt-4 lg:pt-1'>
             <Suspense fallback={<Loading />}>
               <Header
-                title={`Laporan Komplain IT Bulan ${selectedMonth} ${selectedYear}`}
+                title={`Laporan Komplain IT Bulan ${getIndonesianMonthName(selectedMonth)} ${selectedYear}`}
                 selectedMonth={selectedMonth}
                 setSelectedMonth={setSelectedMonth}
                 selectedYear={selectedYear}

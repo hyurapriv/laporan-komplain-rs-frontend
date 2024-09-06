@@ -60,7 +60,7 @@ const PermintaanUpdate = () => {
       { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.Selesai || 0, hasDetail: true, detailType: 'selesai', tooltipText: 'Jumlah komplain yang sudah berhasil diselesaikan.' },
       { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.Pending || 0, hasDetail: true, detailType: 'pending', tooltipText: 'Jumlah komplain yang ditunda.' },
       { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: formatTime(averageResponseTime || 0), hasDetail: false, tooltipText: 'Rata-rata waktu respon untuk menangani komplain.' },
-      // { name: 'Durasi Pengerjaan', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: formatTime(averageResponseTime || 0), hasDetail: false, tooltipText: 'Rata-rata waktu respon untuk menangani komplain.' },
+      { name: 'Durasi Pengerjaan', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-violet-300', value: formatTime(averageResponseTime || 0), hasDetail: false, tooltipText: 'Rata-rata waktu respon untuk menangani komplain.' },
     ];
   }, [data]);
 
@@ -114,7 +114,7 @@ const PermintaanUpdate = () => {
             <div className="text-red-500">{error.message || 'An error occurred'}</div>
           ) : hasData ? (
             <>
-              <div className='grid grid-cols-2 md:grid-cols-5 gap-4 mt-8 lg:mt-12'>
+              <div className='grid grid-cols-2 md:grid-cols-6 gap-4 mt-8 lg:mt-12'>
                 <Suspense fallback={<div className="text-center py-4">Loading Cards...</div>}>
                   {cards.map((card, index) => (
                     <Card

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from '../assets/logo.png';
 import { FaBars, FaTimes, FaTools, FaUpload, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaChartSimple, FaScrewdriverWrench } from "react-icons/fa6";
 import { BsPersonWorkspace } from "react-icons/bs";
 import { GiFirstAidKit } from "react-icons/gi";
 
@@ -23,20 +24,25 @@ export default function Navbar() {
 
   const menuItems = [
     {
+      name: 'Dashboard',
+      icon: <FaChartSimple />,
+      path: '/',
+    },
+    {
       name: 'Data Komplain IT',
       icon: <FaTools />,
-      path: '/',
+      path: '/komplain',
       subMenu: [
-        { name: 'Data Unit', path: '/data-unit' },
-        { name: 'Data Kinerja', path: '/data-kinerja' }
+        { name: 'Data Unit', path: '/komplain/data-unit' },
+        { name: 'Data Kinerja', path: '/komplain/data-kinerja' }
       ]
     },
     {
       name: 'Permintaan Update Data IT',
       icon: <FaUpload />,
-      path: '/perubahan-data',
+      path: '/permintaan-update',
       subMenu: [
-        { name: 'Data Kinerja', path: '/perubahan-data/data-kinerja' }
+        { name: 'Data Kinerja', path: '/permintaan-update/data-kinerja' }
       ]
     }
   ];

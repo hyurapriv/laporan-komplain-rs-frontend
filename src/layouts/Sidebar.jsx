@@ -16,22 +16,23 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   }, [openMenu]);
 
   const mainMenuItems = [
-    { name: 'Data Komplain IT', icon: <FaScrewdriverWrench />, path: '/' },
+    { name: 'Dashboard', icon: <FaChartSimple />, path: '/' },
+    { name: 'Data Komplain IT', icon: <FaScrewdriverWrench />, path: '/komplain' },
     {
       name: ['Permintaan', 'Update Data IT'],
       icon: <FaFileUpload />,
-      path: '/perubahan-data',
+      path: '/permintaan-update',
       isTwoLines: true
     }
   ];
 
   const subMenuItems = {
-    '/': [
-      { name: 'Data Unit', icon: <GiFirstAidKit />, path: '/data-unit' },
-      { name: 'Data Kinerja', icon: <BsPersonWorkspace />, path: '/data-kinerja' },
+    '/komplain': [
+      { name: 'Data Unit', icon: <GiFirstAidKit />, path: '/komplain/data-unit' },
+      { name: 'Data Kinerja', icon: <BsPersonWorkspace />, path: '/komplain/data-kinerja' },
     ],
-    '/perubahan-data': [
-      { name: 'Data Kinerja', icon: <BsPersonWorkspace />, path: '/perubahan-data/data-kinerja' },
+    '/permintaan-update': [
+      { name: 'Data Kinerja', icon: <BsPersonWorkspace />, path: '/permintaan-update/data-kinerja' },
     ]
   };
 
