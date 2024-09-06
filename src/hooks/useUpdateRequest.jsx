@@ -7,7 +7,7 @@ const STALE_TIME = 25000; // 25 seconds
 
 const fetchUpdateRequestData = async (year, month) => {
   const formattedMonth = month.toString().padStart(2, '0');
-  const response = await axios.get('http://localhost:8000/api/new-update', {
+  const response = await axios.get('http://localhost:8000/api/permintaan-update', {
     params: { year, month: formattedMonth }
   });
   return response.data;

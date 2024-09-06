@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 const Modal = ({ isOpen, onClose, data, title }) => {
   if (!isOpen) return null;
@@ -8,17 +8,31 @@ const Modal = ({ isOpen, onClose, data, title }) => {
       <div className="bg-white p-6 rounded-lg max-w-lg w-full">
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         <div className="max-h-96 overflow-y-auto">
-          {data.map((item) => (
-            <div key={item.id} className="mb-4 p-2 border rounded">
-              <p><strong>ID:</strong> {item.id}</p>
-              <p><strong>Pelapor:</strong> {item.namaPelapor || 'N/A'}</p>
-              <p><strong>Petugas:</strong> {item.petugas || 'N/A'}</p>
-              <p><strong>Waktu Masuk:</strong> {item.datetime_masuk}</p>
-              {item.datetime_pengerjaan && (
-                <p><strong>Waktu Pengerjaan:</strong> {item.datetime_pengerjaan}</p>
-              )}
-            </div>
-          ))}
+          {data.length > 0 ? (
+            data.map((item, index) => (
+              <div key={index} className="mb-4 p-2 border rounded">
+                <p><strong>ID:</strong> {item.id}</p>
+                <p><strong>Pelapor:</strong> {item.nama_pelapor || 'N/A'}</p>
+                <p><strong>Petugas:</strong> {Array.isArray(item.petugas) ? item.petugas.join(', ') : (item.petugas || 'N/A')}</p>
+                <p><strong>Lokasi:</strong> {item.lokasi || 'N/A'}</p>
+                <p><strong>Waktu Masuk:</strong> {item.datetime_masuk}</p>
+                {item.datetime_pengerjaan && (
+                  <>
+                    <p><strong>Waktu Pengerjaan:</strong> {item.datetime_pengerjaan}</p>
+                    <p><strong>Waktu Selesai:</strong> {item.datetime_selesai}</p>
+                    <p><strong>Respon Time:</strong> {item.respon_time}</p>
+                  </>
+                )}
+                {item.datetime_selesai && (
+                  <>
+                    <p><strong>Durasi Pengerjaan:</strong> {item.durasi_pengerjaan}</p>
+                  </>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-gray-500">Belum ada data.</p>
+          )}
         </div>
         <button 
           onClick={onClose}
@@ -28,7 +42,7 @@ const Modal = ({ isOpen, onClose, data, title }) => {
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Modal
+export default Modal;

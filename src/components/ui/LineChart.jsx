@@ -28,10 +28,10 @@ const DailyRequestsLineChart = ({ data, selectedMonth, selectedYear }) => {
         <LineChart
           data={chartData}
           margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 5,
+            top: 15,
+            right: 5,
+            left: 5,
+            bottom: 5,  // Increased space at the bottom for X axis labels and legend
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
@@ -39,13 +39,22 @@ const DailyRequestsLineChart = ({ data, selectedMonth, selectedYear }) => {
             dataKey="date" 
             tickFormatter={(tick) => tick.split('-')[2]}
             interval={0}
-            angle={-45}
-            textAnchor="end"
-            height={50}
+            angle={0}  // Rotate labels to prevent overlap
+            textAnchor="middle"
+            height={60}  // Increase height to fit rotated labels
+            tick={{ fontSize: 12 }}
           />
           <YAxis />
           <Tooltip content={<CustomTooltip />} />
-          <Legend />
+          <Legend 
+            wrapperStyle={{
+              bottom: 0,
+              left: 0,
+              right: 0,
+              textAlign: 'center',
+              fontSize: 12
+            }}
+          />
           <Line type="monotone" dataKey="count" name="Jumlah" stroke="#8884d8" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 8 }} />
         </LineChart>
       </ResponsiveContainer>

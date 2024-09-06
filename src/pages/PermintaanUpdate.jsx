@@ -6,11 +6,11 @@ import { MdPendingActions, MdOutlineAccessTimeFilled } from "react-icons/md";
 import Header from '../layouts/Header';
 import Footer from '../layouts/Footer';
 
-const Loading = lazy(() => import('../ui/Loading'));
-const Card = lazy(() => import('../ui/Card'));
-const BarChart = lazy(() => import('../ui/BarChart'));
-const DailyRequestsLineChart = lazy(() => import('../ui/LineChart'));
-const Modal = lazy(() => import('../ui/Modal'));
+const Loading = lazy(() => import('../components/ui/Loading'));
+const Card = lazy(() => import('../components/ui/Card'));
+const BarChart = lazy(() => import('../components/ui/BarChart'));
+const DailyRequestsLineChart = lazy(() => import('../components/ui/LineChart'));
+const Modal = lazy(() => import('../components/ui/Modal'));
 
 // Function to format time from minutes to hours and minutes
 const formatTime = (minutes) => {
@@ -40,9 +40,6 @@ const PermintaanUpdate = () => {
   } = useUpdateRequest();
 
   useEffect(() => {
-    console.log("Data updated:", data);
-    console.log("Selected Month:", selectedMonth);
-    console.log("Selected Year:", selectedYear);
   }, [data, selectedMonth, selectedYear]);
 
   const handleMonthYearChange = (value) => {
@@ -63,6 +60,7 @@ const PermintaanUpdate = () => {
       { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.Selesai || 0, hasDetail: true, detailType: 'selesai', tooltipText: 'Jumlah komplain yang sudah berhasil diselesaikan.' },
       { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.Pending || 0, hasDetail: true, detailType: 'pending', tooltipText: 'Jumlah komplain yang ditunda.' },
       { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: formatTime(averageResponseTime || 0), hasDetail: false, tooltipText: 'Rata-rata waktu respon untuk menangani komplain.' },
+      // { name: 'Durasi Pengerjaan', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: formatTime(averageResponseTime || 0), hasDetail: false, tooltipText: 'Rata-rata waktu respon untuk menangani komplain.' },
     ];
   }, [data]);
 
@@ -94,63 +92,60 @@ const PermintaanUpdate = () => {
   };
 
   return (
-    <>
-      <div className="flex flex-col min-h-screen">
-        <div className="flex-grow">
-          <section className='px-2 lg:px-8 xl:px-4 pt-4 lg:pt-1'>
-            <Header
-              title={`Laporan Permintaan Update Data Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
-              selectedMonth={`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`}
-              setSelectedMonth={handleMonthYearChange}
-              getMonthName={getMonthName}
-              availableMonths={availableMonths}
-              lastUpdateTime={data?.lastUpdateTime}
-            />
-            <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
-              <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan: ${data?.totalRequests || 0}`}</span>
-            </h3>
-            {loading ? (
+    <div className="flex flex-col min-h-screen">
+      <div className="flex-grow">
+        <section className='px-2 lg:px-8 xl:px-4 pt-4 lg:pt-1'>
+          <Header
+            title={`Laporan Permintaan Update Data Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
+            selectedMonth={`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`}
+            setSelectedMonth={handleMonthYearChange}
+            getMonthName={getMonthName}
+            availableMonths={availableMonths}
+            lastUpdateTime={data?.lastUpdateTime}
+          />
+          <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
+            <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan: ${data?.totalRequests || 0}`}</span>
+          </h3>
+          {loading ? (
+            <Suspense fallback={<div>Loading...</div>}>
+              <Loading />
+            </Suspense>
+          ) : error ? (
+            <div className="text-red-500">{error.message || 'An error occurred'}</div>
+          ) : hasData ? (
+            <>
+              <div className='grid grid-cols-2 md:grid-cols-5 gap-4 mt-8 lg:mt-12'>
+                <Suspense fallback={<div className="text-center py-4">Loading Cards...</div>}>
+                  {cards.map((card, index) => (
+                    <Card
+                      key={index}
+                      {...card}
+                      onClick={card.hasDetail ? () => openModal(card.detailType) : undefined}
+                    />
+                  ))}
+                </Suspense>
+              </div>
               <Suspense fallback={<div>Loading...</div>}>
-                <Loading />
+                <Modal
+                  isOpen={modalOpen}
+                  onClose={() => setModalOpen(false)}
+                  data={modalData}
+                  title={modalTitle}
+                />
               </Suspense>
-            ) : error ? (
-              <div className="text-red-500">{error.message || 'An error occurred'}</div>
-            ) : hasData ? (
-              <>
-                <div className='grid grid-cols-2 md:grid-cols-5 gap-4 mt-8 lg:mt-12'>
-                  <Suspense fallback={<div className="text-center py-4">Loading Cards...</div>}>
-                    {cards.map((card, index) => (
-                      <div key={index} className={card.hasDetail ? "cursor-pointer" : ""} onClick={card.hasDetail ? () => openModal(card.detailType) : undefined}>
-                        <Card {...card} className={card.hasDetail ? "hover:scale-105" : ""} />
-                        {card.hasDetail && (
-                          <div className="absolute inset-0 pointer-events-none"></div>
-                        )}
-                      </div>
-                    ))}
-                  </Suspense>
+              <Suspense fallback={<div>Loading Daily Requests Chart...</div>}>
+                <div className='mt-8 lg:mt-12'>
+                  {<DailyRequestsLineChart data={data?.dailyRequests || {}} selectedMonth={selectedMonth} selectedYear={selectedYear} />}
                 </div>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Modal
-                    isOpen={modalOpen}
-                    onClose={() => setModalOpen(false)}
-                    data={modalData}
-                    title={modalTitle}
-                  />
-                </Suspense>
-                <Suspense fallback={<div>Loading Daily Requests Chart...</div>}>
-                  <div className='mt-8 lg:mt-12'>
-                    {<DailyRequestsLineChart data={data?.dailyRequests || {}} selectedMonth={selectedMonth} selectedYear={selectedYear} />}
-                  </div>
-                </Suspense>
-              </>
-            ) : (
-              <div className="text-center py-8">No data available for the selected month</div>
-            )}
-          </section>
-        </div>
+              </Suspense>
+            </>
+          ) : (
+            <div className="text-center py-8">No data available for the selected month</div>
+          )}
+        </section>
       </div>
       <Footer />
-    </>
+    </div>
   );
 };
 

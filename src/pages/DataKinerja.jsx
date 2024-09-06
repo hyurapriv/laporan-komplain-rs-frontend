@@ -8,13 +8,12 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import useUpdateRequest from '../hooks/useUpdateRequest';
+import useNewData from '../hooks/useNewData';
 import Header from '../layouts/Header';
-import Loading from '../ui/Loading';
-import { Tables } from '../ui/Tables';
+import Loading from '../components/ui/Loading';
+import { Tables } from '../components/ui/Tables';
 import Footer from '../layouts/Footer';
 
-// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -23,7 +22,6 @@ ChartJS.register(
   Legend
 );
 
-// Define fixed colors for specific petugas
 const petugasColors = {
   'Adika': '#B414EF',
   'Agus': '#0FBB98',
@@ -33,23 +31,22 @@ const petugasColors = {
   'Virgie': '#3E5F8A',
 };
 
-// Define the fixed order of petugas
 const fixedOrder = ['Adika', 'Agus', 'Ali Muhson', 'Bayu', 'Ganang', 'Virgie'];
 
-const KinerjaPermintaanUpdate = () => {
+const DataKinerja = () => {
   const {
     data,
     loading,
     error,
     setSelectedMonth,
-    setSelectedYear,
     getMonthName,
     availableMonths,
     selectedMonth,
-    selectedYear
-  } = useUpdateRequest();
+    selectedYear,
+    lastUpdateTime
+  } = useNewData();
 
-  const totalRequests = useMemo(() => {
+  const totalComplaints = useMemo(() => {
     if (!data || !data.petugasCounts) return 0;
     return Object.values(data.petugasCounts).reduce((acc, value) => acc + value, 0);
   }, [data]);
@@ -59,16 +56,10 @@ const KinerjaPermintaanUpdate = () => {
     const unsortedData = fixedOrder.map(name => ({
       nama: name,
       jumlahPengerjaan: data.petugasCounts[name] || 0,
-      kontribusi: totalRequests > 0 ? ((data.petugasCounts[name] / totalRequests) * 100).toFixed(2) + '%' : '0%',
+      kontribusi: ((data.petugasCounts[name] || 0) / totalComplaints * 100).toFixed(2) + '%',
     }));
     return unsortedData.sort((a, b) => b.jumlahPengerjaan - a.jumlahPengerjaan);
-  }, [data, totalRequests]);
-
-  const handleMonthYearChange = (value) => {
-    const [year, month] = value.split('-');
-    setSelectedYear(parseInt(year, 10));
-    setSelectedMonth(parseInt(month, 10));
-  };
+  }, [data, totalComplaints]);
 
   const barChartConfig = useMemo(() => {
     if (!data || !data.petugasCounts) return { labels: [], datasets: [] };
@@ -97,21 +88,19 @@ const KinerjaPermintaanUpdate = () => {
     return <div>No data available</div>;
   }
 
-  const lastUpdateTime = data.lastUpdateTime;
-
   return (
     <>
       <div className='px-4 flex-1 pt-1 mb-5'>
         <Header
-          title={`Laporan Permintaan Update Data Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
+          title={`Laporan Kinerja Petugas Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
           selectedMonth={`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`}
-          setSelectedMonth={handleMonthYearChange}
+          setSelectedMonth={setSelectedMonth}
           getMonthName={getMonthName}
           availableMonths={availableMonths}
-          lastUpdateTime={data?.lastUpdateTime}
+          lastUpdateTime={lastUpdateTime}
         />
         <h3 className='mt-5 lg:mt-2 text-lg font-bold text-white'>
-          <span className='bg-light-green py-2 px-3 rounded'>{`Total Permintaan: ${data.totalRequests}`}</span>
+          <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${data.totalComplaints || 0}`}</span>
         </h3>
 
         <div className="mt-10">
@@ -154,4 +143,4 @@ const KinerjaPermintaanUpdate = () => {
   );
 };
 
-export default KinerjaPermintaanUpdate;
+export default DataKinerja;

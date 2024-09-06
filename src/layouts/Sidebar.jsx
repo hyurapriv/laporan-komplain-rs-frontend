@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import Logo from '../../assets/logo.png';
+import Logo from '../assets/logo.png'
 import { FaChartSimple, FaScrewdriverWrench } from "react-icons/fa6";
 import { BsPersonWorkspace } from "react-icons/bs";
 import { MdDoubleArrow, MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";

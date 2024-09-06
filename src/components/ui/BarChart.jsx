@@ -27,19 +27,14 @@ const BarChart = ({ data }) => {
     }
 
     const processedData = {};
-    let lainnyaTotal = 0;
-
+    
     Object.entries(data).forEach(([category, units]) => {
-      if (category.toLowerCase().includes('lainnya')) {
-        lainnyaTotal += Object.values(units).reduce((acc, unit) => acc + unit.Total, 0);
-      } else {
-        processedData[category] = Object.values(units).reduce((acc, unit) => acc + unit.Total, 0);
-      }
+      Object.entries(units).forEach(([unitName, unitData]) => {
+        if (unitData.Total) {
+          processedData[unitName] = (processedData[unitName] || 0) + unitData.Total;
+        }
+      });
     });
-
-    if (lainnyaTotal > 0) {
-      processedData['Lainnya'] = lainnyaTotal;
-    }
 
     const labels = Object.keys(processedData);
     const values = Object.values(processedData);
@@ -50,14 +45,12 @@ const BarChart = ({ data }) => {
     return {
       labels,
       datasets: [{
-        label: 'Total Komplain',
+        label: 'Total Komplain per Unit',
         data: values,
         backgroundColor: datasetColor,
       }]
     };
   }, [data]);
-
-  console.log('BarChart chartData:', JSON.stringify(chartData, null, 2));
 
   const options = {
     responsive: true,
@@ -98,7 +91,7 @@ const BarChart = ({ data }) => {
     },
     scales: {
       x: {
-        display: false,
+        display: true,
       },
       y: {
         beginAtZero: true,

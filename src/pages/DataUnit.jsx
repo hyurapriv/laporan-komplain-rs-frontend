@@ -12,7 +12,7 @@ import {
   LinearScale,
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
-import Loading from '../ui/Loading';
+import Loading from '../components/ui/Loading';
 import Footer from '../layouts/Footer';
 
 // Register Chart.js components

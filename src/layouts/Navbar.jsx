@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import Logo from '../../assets/logo.png';
-import { FaBars, FaTimes, FaTools, FaUpload } from 'react-icons/fa';
+import Logo from '../assets/logo.png';
+import { FaBars, FaTimes, FaTools, FaUpload, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { BsPersonWorkspace } from "react-icons/bs";
 import { GiFirstAidKit } from "react-icons/gi";
 
@@ -13,6 +13,7 @@ export default function Navbar() {
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+
 
   const toggleDropdown = (index) => {
     setActiveDropdown(activeDropdown === index ? null : index);
@@ -35,7 +36,6 @@ export default function Navbar() {
       icon: <FaUpload />,
       path: '/perubahan-data',
       subMenu: [
-        { name: 'Data Unit', path: '/perubahan-data/data-unit' },
         { name: 'Data Kinerja', path: '/perubahan-data/data-kinerja' }
       ]
     }
@@ -55,23 +55,29 @@ export default function Navbar() {
       <div className={`transition-all duration-300 ${isOpen ? 'max-h-screen' : 'max-h-0 overflow-hidden'}`}>
         <nav className="flex flex-col p-4">
           {menuItems.map((item, index) => (
-            <div key={index}>
-              <div
-                className={`flex items-center py-2 text-lg transition-colors duration-300 cursor-pointer ${
-                  isActive(item.path) ? 'text-light-green' : 'text-gray-700'
-                }`}
-                onClick={() => item.subMenu && toggleDropdown(index)}
-              >
-                <span className="mr-3">{item.icon}</span>
-                {item.name}
+            <div key={index} className="mb-2">
+              <div className="flex items-center justify-between">
+                <Link
+                  to={item.path}
+                  className={`flex items-center py-2 text-lg transition-colors duration-300 ${
+                    isActive(item.path) ? 'text-light-green' : 'text-gray-700'
+                  }`}
+                  onClick={toggleMenu}
+                >
+                  <span className="mr-3">{item.icon}</span>
+                  {item.name}
+                </Link>
                 {item.subMenu && (
-                  <span className={`ml-auto ${activeDropdown === index ? 'rotate-180' : ''}`}>
-                    <FaBars />
-                  </span>
+                  <button
+                    onClick={() => toggleDropdown(index)}
+                    className="p-2 text-gray-600 focus:outline-none"
+                  >
+                    {activeDropdown === index ? <FaChevronUp /> : <FaChevronDown />}
+                  </button>
                 )}
               </div>
               {item.subMenu && activeDropdown === index && (
-                <div className="ml-4">
+                <div className="ml-8 mt-2">
                   {item.subMenu.map((subItem, subIndex) => (
                     <Link
                       key={subIndex}

@@ -17,6 +17,7 @@ body {
   @apply overflow-x-hidden;
 }
 
+/* Transition settings */
 .transition-all {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -31,33 +32,12 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Ensure the main content adjusts with the sidebar */
+/* Main content adjustments */
 main {
   width: calc(100% - 16rem); /* Sidebar open */
+  margin-left: 16rem; /* Default sidebar width */
+  transition: margin-left 0.3s ease;
 }
-/* Untuk perangkat mobile */
-@media (max-width: 768px) {
-  main {
-    padding-top: 4rem; /* Menyesuaikan padding atas untuk memberi ruang bagi navbar */
-    margin-left: 0; /* Pastikan margin kiri 0 pada perangkat mobile */
-  }
-
-  .navbar {
-    position: fixed;
-    width: 100%;
-    top: 0;
-    z-index: 50; /* Pastikan navbar berada di atas konten */
-  }
-}
-
-/* Untuk perangkat tablet */
-@media (min-width: 769px) and (max-width: 1028px) {
-  main {
-    padding-top: 4rem; /* Menyesuaikan padding atas untuk memberi ruang bagi navbar */
-    margin-left: 0; /* Pastikan margin kiri 0 pada perangkat tablet */
-  }
-}
-
 
 .sidebar-collapsed ~ main {
   width: calc(100% - 4rem); /* Sidebar collapsed */
@@ -67,6 +47,21 @@ main {
   main {
     width: 100%; /* Full width on mobile */
     margin-left: 0;
+    padding-top: 4rem; /* Adjust padding-top for navbar */
+  }
+
+  .navbar {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 50; /* Ensure navbar is above content */
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1028px) {
+  main {
+    padding-top: 4rem; /* Adjust padding-top for navbar */
+    margin-left: 0; /* Ensure margin-left 0 on tablet */
   }
 }
 
@@ -92,7 +87,6 @@ main {
 .sidebar {
   scrollbar-width: thin; /* Makes the scrollbar thinner */
   scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1); /* Thumb color and track color */
-  overflow-x: hidden;
 }
 
 /* Ensure sidebar is scrollable */
@@ -106,6 +100,7 @@ main {
   }
 }
 
+/* Tooltip styles */
 .tooltip {
   z-index: 10;
   text-align: center;
@@ -123,3 +118,12 @@ main {
   bottom: -8px;
 }
 
+@media (max-width: 768px) {
+  .recharts-cartesian-axis-tick {
+    font-size: 10px; /* Decrease font size for smaller screens */
+  }
+
+  .recharts-cartesian-axis-tick-text {
+    transform: rotate(-30deg); /* Adjust rotation for smaller screens */
+  }
+}

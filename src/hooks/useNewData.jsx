@@ -17,7 +17,7 @@ const CATEGORIES = {
 
 const fetchNewData = async (year, month) => {
   const formattedMonth = month.toString().padStart(2, '0');
-  const response = await axios.get('http://localhost:8000/api/new-data', {
+  const response = await axios.get('http://localhost:8000/api/komplain', {
     params: { year, month: formattedMonth }
   });
   return response.data;
