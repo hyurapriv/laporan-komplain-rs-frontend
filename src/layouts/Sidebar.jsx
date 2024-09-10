@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import Logo from '../assets/logo.png'
+import Logo from '../assets/logo.png';
 import { FaChartSimple, FaScrewdriverWrench } from "react-icons/fa6";
 import { BsPersonWorkspace } from "react-icons/bs";
 import { MdDoubleArrow, MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";
 import { GiFirstAidKit } from "react-icons/gi";
 import { FaFileUpload } from "react-icons/fa";
+
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const location = useLocation();
@@ -85,7 +86,9 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               <Link
                 to={menuItem.path}
                 className={`flex items-center w-full px-4 py-3 ${menuItem.isTwoLines ? 'h-16' : 'h-12'}`}
-                onClick={() => setOpenMenu(openMenu === menuItem.path ? '' : menuItem.path)}
+                onClick={() => {
+                  setOpenMenu(openMenu === menuItem.path ? '' : menuItem.path);
+                }}
               >
                 {renderMenuItemContent(menuItem)}
               </Link>

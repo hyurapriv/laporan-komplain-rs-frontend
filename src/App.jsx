@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import useResponsive from './hooks/useResponsive';
 import { KomplainProvider } from './context/KomplainContext';
 
+
 const Sidebar = lazy(() => import('./layouts/Sidebar'));
 const Navbar = lazy(() => import('./layouts/Navbar'));
 

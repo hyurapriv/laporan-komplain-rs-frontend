@@ -2,6 +2,7 @@
   "name": "frontend",
   "private": true,
   "version": "0.0.0",
+  "packageManager": "npm@9.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,17 +16,12 @@
     "@tanstack/react-query-devtools": "^5.54.1",
     "axios": "^1.7.2",
     "chart.js": "^4.4.3",
-    "chartjs-plugin-annotation": "^3.0.1",
-    "chartjs-plugin-datalabels": "^2.2.0",
-    "lodash": "^4.17.21",
-    "lodash.debounce": "^4.0.8",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
     "react-error-boundary": "^4.0.13",
     "react-icons": "^5.2.1",
     "react-router-dom": "^6.25.1",
-    "react-super-responsive-table": "^5.2.3",
     "recharts": "^2.12.7"
   },
   "devDependencies": {
@@ -41,6 +37,7 @@
     "eslint-plugin-react-refresh": "^0.4.7",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.6",
+    "turbo": "^2.1.1",
     "vite": "^5.3.4"
   }
 }

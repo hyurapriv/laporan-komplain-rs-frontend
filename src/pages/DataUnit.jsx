@@ -42,114 +42,79 @@ const DataUnit = () => {
   const {
     resources,
     selectedMonth,
-    setSelectedMonth,
     selectedYear,
-    setSelectedYear,
+    isLoading,
+    error
   } = useKomplainContext();
 
   const [selectedUnit, setSelectedUnit] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsLoading(true);
     if (resources.detailUnit) {
-      try {
-        const detailUnitData = resources.detailUnit.read();
-        if (detailUnitData?.unit) {
-          const units = Object.keys(detailUnitData.unit);
-          const firstAvailableUnit = unitOrder.find(unit => units.includes(unit));
-          if (firstAvailableUnit && !selectedUnit) {
-            setSelectedUnit(firstAvailableUnit);
-          }
+      const data = resources.detailUnit.read();
+      if (!selectedUnit && data?.unit) {
+        const units = Object.keys(data.unit);
+        const firstAvailableUnit = unitOrder.find(unit => units.includes(unit));
+        if (firstAvailableUnit) {
+          setSelectedUnit(firstAvailableUnit);
         }
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error reading detailUnit data:", error);
-        setIsLoading(false);
       }
     }
   }, [resources.detailUnit, selectedUnit]);
+
+  const detailUnitData = useMemo(() => resources.detailUnit?.read(), [resources.detailUnit]);
 
   const serviceChartConfig = useMemo(() => {
-    if (resources.detailUnit && selectedUnit) {
-      try {
-        const detailUnitData = resources.detailUnit.read();
-        const unitData = detailUnitData?.unit?.[selectedUnit] || {};
-        const labels = Object.keys(unitData);
-        const data = labels.map(service => unitData[service]?.Total || 0);
-        const backgroundColor = data.map((_, index) => colorPalette[index % colorPalette.length]);
+    if (detailUnitData && selectedUnit) {
+      const unitData = detailUnitData?.unit?.[selectedUnit] || {};
+      const labels = Object.keys(unitData);
+      const data = labels.map(service => unitData[service]?.Total || 0);
+      const backgroundColor = data.map((_, index) => colorPalette[index % colorPalette.length]);
 
-        return {
-          labels,
-          datasets: [{
-            label: 'Jumlah Komplain',
-            data,
-            backgroundColor,
-          }]
-        };
-      } catch (error) {
-        console.error("Error creating serviceChartConfig:", error);
-      }
+      return {
+        labels,
+        datasets: [{
+          label: 'Jumlah Komplain',
+          data,
+          backgroundColor,
+        }]
+      };
     }
-    return {
-      labels: ['No Data'],
-      datasets: [{
-        label: 'Jumlah Komplain',
-        data: [0],
-        backgroundColor: colorPalette[0]
-      }]
-    };
-  }, [resources.detailUnit, selectedUnit]);
+    return null;
+  }, [detailUnitData, selectedUnit]);
 
   const statusChartConfig = useMemo(() => {
-    if (resources.detailUnit && selectedUnit) {
-      try {
-        const detailUnitData = resources.detailUnit.read();
-        const unitData = detailUnitData?.unit?.[selectedUnit] || {};
-        const statusData = {};
-        Object.values(unitData).forEach(service => {
-          statusOrder.forEach(status => {
-            statusData[status] = (statusData[status] || 0) + (service[status] || 0);
-          });
+    if (detailUnitData && selectedUnit) {
+      const unitData = detailUnitData?.unit?.[selectedUnit] || {};
+      const statusData = {};
+      Object.values(unitData).forEach(service => {
+        statusOrder.forEach(status => {
+          statusData[status] = (statusData[status] || 0) + (service[status] || 0);
         });
+      });
 
-        const labels = statusOrder;
-        const data = labels.map(status => statusData[status] || 0);
-        const backgroundColor = labels.map(label => statusColors[label]);
+      const labels = statusOrder;
+      const data = labels.map(status => statusData[status] || 0);
+      const backgroundColor = labels.map(label => statusColors[label]);
 
-        return {
-          labels,
-          datasets: [{
-            label: 'Jumlah Status',
-            data,
-            backgroundColor,
-          }]
-        };
-      } catch (error) {
-        console.error("Error creating statusChartConfig:", error);
-      }
+      return {
+        labels,
+        datasets: [{
+          label: 'Jumlah Status',
+          data,
+          backgroundColor,
+        }]
+      };
     }
-    return {
-      labels: statusOrder,
-      datasets: [{
-        label: 'Jumlah Status',
-        data: statusOrder.map(() => 0),
-        backgroundColor: statusOrder.map(label => statusColors[label]),
-      }]
-    };
-  }, [resources.detailUnit, selectedUnit]);
+    return null;
+  }, [detailUnitData, selectedUnit]);
 
   const totalKomplainForUnit = useMemo(() => {
-    if (resources.detailUnit && selectedUnit) {
-      try {
-        const detailUnitData = resources.detailUnit.read();
-        return Object.values(detailUnitData?.unit?.[selectedUnit] || {}).reduce((total, service) => total + (service.Total || 0), 0);
-      } catch (error) {
-        console.error("Error calculating totalKomplainForUnit:", error);
-      }
+    if (detailUnitData && selectedUnit) {
+      return Object.values(detailUnitData?.unit?.[selectedUnit] || {}).reduce((total, service) => total + (service.Total || 0), 0);
     }
     return 0;
-  }, [resources.detailUnit, selectedUnit]);
+  }, [detailUnitData, selectedUnit]);
 
   const horizontalBarOptions = {
     responsive: true,
@@ -213,21 +178,17 @@ const DataUnit = () => {
     return <Loading />;
   }
 
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
     <>
       <section className="px-4 flex-1 pt-1">
-        <Suspense fallback={<Loading />}>
-          <Header
-            title={`Laporan Komplain IT Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
-            selectedMonth={selectedMonth}
-            setSelectedMonth={setSelectedMonth}
-            selectedYear={selectedYear}
-            setSelectedYear={setSelectedYear}
-            availableMonths={resources.bulan?.read()?.data_bulan}
-            availableYears={resources.bulan?.read()?.data_tahun}
-            lastUpdateTime={resources.totalData?.read()?.lastUpdate}
-          />
-        </Suspense>
+        <Header
+          title={`Laporan Komplain IT Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
+          lastUpdateTime={detailUnitData?.lastUpdate}
+        />
 
         <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
           <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${totalKomplainForUnit}`}</span>
@@ -249,7 +210,7 @@ const DataUnit = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Suspense fallback={<div>Loading Chart...</div>}>
+            {serviceChartConfig && (
               <div className="bg-white p-4 rounded-lg shadow-lg">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-semibold text-sm">{`Grafik Unit: ${selectedUnit}`}</h3>
@@ -258,19 +219,21 @@ const DataUnit = () => {
                   <Bar data={serviceChartConfig} options={horizontalBarOptions} />
                 </div>
               </div>
-
+            )}
+            {statusChartConfig && (
               <div className="bg-white p-4 rounded-lg shadow-lg">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-sm">{`Grafik Status Unit: ${selectedUnit}`}</h3>
+                  <h3 className="font-semibold text-sm">Grafik Status</h3>
                 </div>
                 <div style={{ width: '100%', height: 300 }}>
                   <Pie data={statusChartConfig} options={pieChartOptions} />
                 </div>
               </div>
-            </Suspense>
+            )}
           </div>
         </div>
       </section>
+
       <Footer />
     </>
   );

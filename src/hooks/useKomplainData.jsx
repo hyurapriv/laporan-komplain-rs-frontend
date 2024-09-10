@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 
 const api = axios.create({
@@ -60,6 +60,8 @@ const useKomplainData = () => {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [resources, setResources] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState('komplain');
 
   const createDataResource = useCallback((endpoint, params) => {
     return createResource(fetchData(endpoint, params));
@@ -74,41 +76,62 @@ const useKomplainData = () => {
     if (!selectedYear) setSelectedYear(currentYear);
   }, []);
 
+  const loadDataForPage = useCallback((page, month, year) => {
+    setIsLoading(true);
+
+    const commonResources = {
+      bulan: createDataResource('/bulan'),
+    };
+
+    const pageResources = {
+      komplain: {
+        totalData: createDataResource('/total-data', { month, year }),
+        totalStatus: createDataResource('/total-status', { month, year }),
+        totalUnit: createDataResource('/total-unit', { month, year }),
+        detailStatus: createDataResource('/detail-status', { month, year }),
+      },
+      'data-unit': {
+        detailUnit: createDataResource('/detail-unit', { month, year }),
+      },
+      'data-kinerja': {
+        petugas: createDataResource('/petugas', { month, year }),
+      },
+    };
+
+    setResources(prevResources => ({
+      ...prevResources,
+      ...commonResources,
+      ...(pageResources[page] || {}),
+    }));
+
+    setIsLoading(false);
+  }, [createDataResource]);
+
   useEffect(() => {
     if (selectedMonth && selectedYear) {
-      setResources({
-        bulan: createDataResource('/bulan'),
-        totalData: createDataResource('/total-data', { month: selectedMonth, year: selectedYear }),
-        totalStatus: createDataResource('/total-status', { month: selectedMonth, year: selectedYear }),
-        totalUnit: createDataResource('/total-unit', { month: selectedMonth, year: selectedYear }),
-        detailStatus: createDataResource('/detail-status', { month: selectedMonth, year: selectedYear }),
-        detailUnit: createDataResource('/detail-unit', { month: selectedMonth, year: selectedYear }),
-      });
+      loadDataForPage(currentPage, selectedMonth, selectedYear);
     }
-  }, [selectedMonth, selectedYear, createDataResource]);
+  }, [selectedMonth, selectedYear, currentPage, loadDataForPage]);
 
-  const loadDetailUnit = useCallback(() => {
-    setResources(prev => ({
-      ...prev,
-      detailUnit: createDataResource('/detail-unit', { month: selectedMonth, year: selectedYear }),
-    }));
-  }, [selectedMonth, selectedYear, createDataResource]);
+  const changePage = useCallback((newPage) => {
+    setCurrentPage(newPage);
+    loadDataForPage(newPage, selectedMonth, selectedYear);
+  }, [loadDataForPage, selectedMonth, selectedYear]);
 
-  const loadPetugas = useCallback(() => {
-    setResources(prev => ({
-      ...prev,
-      petugas: createDataResource('/petugas', { month: selectedMonth, year: selectedYear }),
-    }));
-  }, [selectedMonth, selectedYear, createDataResource]);
+  const updateMonthYear = useCallback((month, year) => {
+    setSelectedMonth(month);
+    setSelectedYear(year);
+    loadDataForPage(currentPage, month, year);
+  }, [currentPage, loadDataForPage]);
 
   return {
     resources,
     selectedMonth,
-    setSelectedMonth,
     selectedYear,
-    setSelectedYear,
-    loadDetailUnit,
-    loadPetugas,
+    updateMonthYear,
+    isLoading,
+    currentPage,
+    changePage,
   };
 };
 

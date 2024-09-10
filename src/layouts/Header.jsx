@@ -1,48 +1,43 @@
 import React, { memo, useMemo, useCallback } from 'react';
+import { useKomplainContext } from '../context/KomplainContext';
 
-const Header = memo(({
-  title,
-  selectedMonth,
-  setSelectedMonth,
-  selectedYear,
-  setSelectedYear,
-  availableMonths = [],
-  availableYears = [],
-  lastUpdateTime,
-  isLoading,
-}) => {
+const Header = memo(({ title, lastUpdateTime }) => {
+  const {
+    selectedMonth,
+    selectedYear,
+    handleMonthYearChange,
+    resources,
+    isLoading
+  } = useKomplainContext();
+
   const getMonthName = useCallback((month) => {
     const date = new Date(2000, month - 1, 1);
     return date.toLocaleString('default', { month: 'long' });
   }, []);
 
   const monthOptions = useMemo(() => {
-    if (Array.isArray(availableMonths) && availableMonths.length > 0) {
-      return availableMonths.map(month => ({
-        value: month.value,
-        label: getMonthName(parseInt(month.value, 10)),
-      })).filter(option => option.value !== undefined);
-    }
-    return [];
-  }, [availableMonths, getMonthName]);
+    const availableMonths = resources.bulan?.read()?.data_bulan || [];
+    return availableMonths.map(month => ({
+      value: month.value,
+      label: getMonthName(parseInt(month.value, 10)),
+    })).filter(option => option.value !== undefined);
+  }, [resources.bulan, getMonthName]);
 
   const yearOptions = useMemo(() => {
-    if (Array.isArray(availableYears) && availableYears.length > 0) {
-      return availableYears.map(year => ({
-        value: year.value,
-        label: year.label,
-      })).filter(option => option.value !== undefined);
-    }
-    return [];
-  }, [availableYears]);
+    const availableYears = resources.bulan?.read()?.data_tahun || [];
+    return availableYears.map(year => ({
+      value: year.value,
+      label: year.label,
+    })).filter(option => option.value !== undefined);
+  }, [resources.bulan]);
 
   const handleMonthChange = useCallback((e) => {
-    setSelectedMonth(e.target.value);
-  }, [setSelectedMonth]);
+    handleMonthYearChange(e.target.value, selectedYear);
+  }, [handleMonthYearChange, selectedYear]);
 
   const handleYearChange = useCallback((e) => {
-    setSelectedYear(e.target.value);
-  }, [setSelectedYear]);
+    handleMonthYearChange(selectedMonth, e.target.value);
+  }, [handleMonthYearChange, selectedMonth]);
 
   return (
     <div className='flex flex-col gap-2'>

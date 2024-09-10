@@ -8,7 +8,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import useNewData from '../hooks/useNewData';
+import { useKomplainContext } from '../context/KomplainContext';
 import Header from '../layouts/Header';
 import Loading from '../components/ui/Loading';
 import { Tables } from '../components/ui/Tables';
@@ -23,7 +23,7 @@ ChartJS.register(
 );
 
 const petugasColors = {
-  'Adika': '#B414EF',
+  'Adika Wicaksana': '#B414EF',
   'Agus': '#0FBB98',
   'Ali Muhson': '#FFCE56',
   'Bayu': '#A10E48',
@@ -31,28 +31,27 @@ const petugasColors = {
   'Virgie': '#3E5F8A',
 };
 
-const fixedOrder = ['Adika', 'Agus', 'Ali Muhson', 'Bayu', 'Ganang', 'Virgie'];
+const fixedOrder = ['Adika Wicaksana', 'Agus', 'Ali Muhson', 'Bayu', 'Ganang', 'Virgie'];
 
 const DataKinerja = () => {
   const {
-    data,
-    loading,
-    error,
-    setSelectedMonth,
-    getMonthName,
-    availableMonths,
+    resources,
     selectedMonth,
+    setSelectedMonth,
     selectedYear,
-    lastUpdateTime
-  } = useNewData();
+    setSelectedYear,
+    isLoading,
+    error
+  } = useKomplainContext();
 
+  const data = resources.petugas || {};
   const totalComplaints = useMemo(() => {
-    if (!data || !data.petugasCounts) return 0;
+    if (!data.petugasCounts) return 0;
     return Object.values(data.petugasCounts).reduce((acc, value) => acc + value, 0);
   }, [data]);
 
   const tableData = useMemo(() => {
-    if (!data || !data.petugasCounts) return [];
+    if (!data.petugasCounts) return [];
     const unsortedData = fixedOrder.map(name => ({
       nama: name,
       jumlahPengerjaan: data.petugasCounts[name] || 0,
@@ -62,7 +61,7 @@ const DataKinerja = () => {
   }, [data, totalComplaints]);
 
   const barChartConfig = useMemo(() => {
-    if (!data || !data.petugasCounts) return { labels: [], datasets: [] };
+    if (!data.petugasCounts) return { labels: [], datasets: [] };
 
     const labels = fixedOrder;
     const chartData = labels.map(name => data.petugasCounts[name] || 0);
@@ -78,31 +77,48 @@ const DataKinerja = () => {
     };
   }, [data]);
 
-  if (loading) {
+  const totalData = resources.totalData?.read();
+  const petugas = resources.petugas?.read();
+
+  const getIndonesianMonthName = (monthNumber) => {
+    const monthNames = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+    const monthIndex = parseInt(monthNumber, 10) - 1;
+    return monthNames[monthIndex] || monthNumber;
+  };
+
+  if (isLoading) {
     return <Loading />;
   }
 
-  if (error) return <div className="text-red-500">{error.message}</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   if (!data) {
     return <div>No data available</div>;
   }
 
+
   return (
     <>
       <div className='px-4 flex-1 pt-1 mb-5'>
         <Header
-          title={`Laporan Kinerja Petugas Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
-          selectedMonth={`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`}
+          title={`Laporan Komplain IT Bulan ${getIndonesianMonthName(selectedMonth)} ${selectedYear}`}
+          selectedMonth={selectedMonth}
           setSelectedMonth={setSelectedMonth}
-          getMonthName={getMonthName}
-          availableMonths={availableMonths}
-          lastUpdateTime={lastUpdateTime}
+          selectedYear={selectedYear}
+          setSelectedYear={setSelectedYear}
+          availableMonths={resources.bulan?.read()?.data_bulan}
+          availableYears={resources.bulan?.read()?.data_tahun}
+          lastUpdateTime={resources.totalData?.read()?.lastUpdate}
+          isLoading={isLoading}
         />
-        <h3 className='mt-5 lg:mt-2 text-lg font-bold text-white'>
-          <span className='bg-light-green py-2 px-3 rounded'>{`Total Komplain: ${data.totalComplaints || 0}`}</span>
-        </h3>
-
+       <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
+            <span className='bg-light-green py-2 px-3 rounded'>
+              {`Total Komplain: ${totalData?.total_komplain || 0}`}
+            </span>
+          </h3>
         <div className="mt-10">
           <div className="bg-white p-4 rounded-lg shadow-lg flex-1">
             <h3 className="font-semibold text-sm mb-4">Grafik Kinerja Petugas</h3>
@@ -135,7 +151,7 @@ const DataKinerja = () => {
               }} />
             </div>
           </div>
-          <Tables data={tableData} />
+          <Tables data={petugas.petugas} />
         </div>
       </div>
       <Footer />

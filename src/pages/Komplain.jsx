@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, memo, useEffect, useState, useCallback } from 'react';
+import React, { Suspense, lazy, memo, useCallback, useMemo } from 'react';
 import { useKomplainContext } from '../context/KomplainContext';
 import { IoSendSharp } from "react-icons/io5";
 import { FaTools, FaCheckCircle } from "react-icons/fa";
@@ -24,36 +24,16 @@ const KomplainContent = () => {
   const {
     resources,
     selectedMonth,
-    setSelectedMonth,
     selectedYear,
-    setSelectedYear,
+    isLoading,
+    currentPage,
+    error,
   } = useKomplainContext();
+  
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalData, setModalData] = useState([]);
-  const [modalTitle, setModalTitle] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await Promise.all([
-        resources.detailStatus?.read(),
-        resources.bulan?.read(),
-        resources.totalData?.read(),
-        resources.totalStatus?.read(),
-        resources.totalUnit?.read()
-      ]);
-    } catch (error) {
-      console.error("Error loading data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [resources]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData, selectedMonth, selectedYear]);
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [modalData, setModalData] = React.useState([]);
+  const [modalTitle, setModalTitle] = React.useState('');
 
   const openModal = useCallback((type) => {
     let detailData;
@@ -90,38 +70,41 @@ const KomplainContent = () => {
     }
   }, [resources.detailStatus]);
 
-  const getIndonesianMonthName = (monthNumber) => {
+  const getIndonesianMonthName = useCallback((monthNumber) => {
     const monthNames = [
       "Januari", "Februari", "Maret", "April", "Mei", "Juni",
       "Juli", "Agustus", "September", "Oktober", "November", "Desember"
     ];
-    const monthIndex = parseInt(monthNumber, 10) - 1; // Convert to zero-based index
-    return monthNames[monthIndex] || monthNumber; // Fallback to the number if invalid
-  };
+    const monthIndex = parseInt(monthNumber, 10) - 1;
+    return monthNames[monthIndex] || monthNumber;
+  }, []);
 
+  const cards = useMemo(() => {
+    const totalStatus = resources.totalStatus?.read() || {};
+    const totalData = resources.totalData?.read() || {};
 
-  const renderContent = () => {
+    return [
+      { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-sky-200', value: totalStatus?.total_status?.['Terkirim'] || 0, hasDetail: true, detailType: 'terkirim', tooltipText: 'Jumlah komplain yang terkirim, namun belum diproses oleh tim IT.' },
+      { name: 'Proses', icon: <FaTools />, bgColor: 'bg-yellow-200', value: totalStatus?.total_status?.['Dalam Pengerjaan / Pengecekan Petugas'] || 0, hasDetail: true, detailType: 'proses', tooltipText: 'Jumlah komplain yang sedang diproses oleh tim IT.' },
+      { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.total_status?.['Selesai'] || 0, hasDetail: true, detailType: 'selesai', tooltipText: 'Jumlah komplain yang sudah berhasil diselesaikan.' },
+      { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.total_status?.['Pending'] || 0, hasDetail: true, detailType: 'pending', tooltipText: 'Jumlah komplain yang ditunda.' },
+      { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: totalData?.respon_time || 'N/A', hasDetail: false, tooltipText: 'Rata-rata waktu respon untuk menangani komplain.' },
+      { name: 'Durasi Pengerjaan', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-violet-300', value: totalData?.durasi_pengerjaan || 'N/A', hasDetail: false, tooltipText: 'Rata-rata durasi waktu pengerjaan untuk menyelesaikan komplain.' },
+    ];
+  }, [resources.totalStatus, resources.totalData]);
+
+  const renderContent = useCallback(() => {
     if (isLoading) {
       return <Loading />;
     }
+
+    if (error) {
+      return <div>Error: {error}</div>;
+    }
+
     try {
-      const bulanData = resources.bulan?.read();
-      const totalData = resources.totalData?.read();
-      const totalStatus = resources.totalStatus?.read();
-      const totalUnit = resources.totalUnit?.read();
-
-      if (!bulanData || !totalData || !totalStatus || !totalUnit) {
-        return <Loading />;
-      }
-
-      const cards = [
-        { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-sky-200', value: totalStatus?.total_status?.['Terkirim'] || 0, hasDetail: true, detailType: 'terkirim', tooltipText: 'Jumlah komplain yang terkirim, namun belum diproses oleh tim IT.' },
-        { name: 'Proses', icon: <FaTools />, bgColor: 'bg-yellow-200', value: totalStatus?.total_status?.['Dalam Pengerjaan / Pengecekan Petugas'] || 0, hasDetail: true, detailType: 'proses', tooltipText: 'Jumlah komplain yang sedang diproses oleh tim IT.' },
-        { name: 'Selesai', icon: <FaCheckCircle />, bgColor: 'bg-green', value: totalStatus?.total_status?.['Selesai'] || 0, hasDetail: true, detailType: 'selesai', tooltipText: 'Jumlah komplain yang sudah berhasil diselesaikan.' },
-        { name: 'Pending', icon: <MdPendingActions />, bgColor: 'bg-slate-300', value: totalStatus?.total_status?.['Pending'] || 0, hasDetail: true, detailType: 'pending', tooltipText: 'Jumlah komplain yang ditunda.' },
-        { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: totalData?.respon_time || 'N/A', hasDetail: false, tooltipText: 'Rata-rata waktu respon untuk menangani komplain.' },
-        { name: 'Durasi Pengerjaan', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-violet-300', value: totalData?.durasi_pengerjaan || 'N/A', hasDetail: false, tooltipText: 'Rata-rata durasi waktu pengerjaan untuk menyelesaikan komplain.' },
-      ];
+      const totalData = resources.totalData?.read() || {};
+      const totalUnit = resources.totalUnit?.read() || [];
 
       return (
         <>
@@ -150,7 +133,7 @@ const KomplainContent = () => {
       console.error("Error rendering content:", error);
       throw error;
     }
-  };
+  }, [isLoading, error, resources, cards, openModal]);
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => {
@@ -162,14 +145,7 @@ const KomplainContent = () => {
             <Suspense fallback={<Loading />}>
               <Header
                 title={`Laporan Komplain IT Bulan ${getIndonesianMonthName(selectedMonth)} ${selectedYear}`}
-                selectedMonth={selectedMonth}
-                setSelectedMonth={setSelectedMonth}
-                selectedYear={selectedYear}
-                setSelectedYear={setSelectedYear}
-                availableMonths={resources.bulan?.read()?.data_bulan}
-                availableYears={resources.bulan?.read()?.data_tahun}
                 lastUpdateTime={resources.totalData?.read()?.lastUpdate}
-                isLoading={isLoading}
               />
             </Suspense>
 
