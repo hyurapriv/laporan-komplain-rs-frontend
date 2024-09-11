@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
-import { useKomplainContext } from '../context/KomplainContext';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useKomplainUnitContext } from '../context/komplain/KomplainUnitContext';
 import Header from '../layouts/Header';
 import Loading from '../components/ui/Loading';
 import Footer from '../layouts/Footer';
@@ -40,33 +40,38 @@ const unitOrder = [
 
 const DataUnit = () => {
   const {
-    resources,
+    detailUnit,
+    totalUnit,
     selectedMonth,
     selectedYear,
-    isLoading,
-    error
-  } = useKomplainContext();
+    error,
+    isLoading
+  } = useKomplainUnitContext();
 
   const [selectedUnit, setSelectedUnit] = useState('');
+  const [debugInfo, setDebugInfo] = useState({});
 
   useEffect(() => {
-    if (resources.detailUnit) {
-      const data = resources.detailUnit.read();
-      if (!selectedUnit && data?.unit) {
-        const units = Object.keys(data.unit);
-        const firstAvailableUnit = unitOrder.find(unit => units.includes(unit));
-        if (firstAvailableUnit) {
-          setSelectedUnit(firstAvailableUnit);
-        }
+    console.log('Context Data:', { detailUnit, totalUnit, selectedMonth, selectedYear, error, isLoading });
+    setDebugInfo({ detailUnit, totalUnit, selectedMonth, selectedYear, error, isLoading });
+  }, [detailUnit, totalUnit, selectedMonth, selectedYear, error, isLoading]);
+
+  useEffect(() => {
+    if (detailUnit?.data?.unit) {
+      console.log('Available Units:', Object.keys(detailUnit.data.unit));
+      const units = Object.keys(detailUnit.data.unit);
+      const firstAvailableUnit = unitOrder.find(unit => units.includes(unit));
+      if (firstAvailableUnit && !selectedUnit) {
+        console.log('Setting first available unit:', firstAvailableUnit);
+        setSelectedUnit(firstAvailableUnit);
       }
     }
-  }, [resources.detailUnit, selectedUnit]);
-
-  const detailUnitData = useMemo(() => resources.detailUnit?.read(), [resources.detailUnit]);
+  }, [detailUnit, selectedUnit]);
 
   const serviceChartConfig = useMemo(() => {
-    if (detailUnitData && selectedUnit) {
-      const unitData = detailUnitData?.unit?.[selectedUnit] || {};
+    if (detailUnit?.data?.unit && selectedUnit) {
+      const unitData = detailUnit.data.unit[selectedUnit] || {};
+      console.log('Unit Data for Chart:', unitData);
       const labels = Object.keys(unitData);
       const data = labels.map(service => unitData[service]?.Total || 0);
       const backgroundColor = data.map((_, index) => colorPalette[index % colorPalette.length]);
@@ -80,12 +85,15 @@ const DataUnit = () => {
         }]
       };
     }
+    console.log('Service Chart Config:', null);
     return null;
-  }, [detailUnitData, selectedUnit]);
+  }, [detailUnit, selectedUnit]);
+
 
   const statusChartConfig = useMemo(() => {
-    if (detailUnitData && selectedUnit) {
-      const unitData = detailUnitData?.unit?.[selectedUnit] || {};
+    if (detailUnit?.data?.unit && selectedUnit) {
+      const unitData = detailUnit.data.unit[selectedUnit] || {};
+      console.log('Status Data for Chart:', unitData);
       const statusData = {};
       Object.values(unitData).forEach(service => {
         statusOrder.forEach(status => {
@@ -106,15 +114,17 @@ const DataUnit = () => {
         }]
       };
     }
+    console.log('Status Chart Config:', null);
     return null;
-  }, [detailUnitData, selectedUnit]);
+  }, [detailUnit, selectedUnit]);
 
   const totalKomplainForUnit = useMemo(() => {
-    if (detailUnitData && selectedUnit) {
-      return Object.values(detailUnitData?.unit?.[selectedUnit] || {}).reduce((total, service) => total + (service.Total || 0), 0);
+    if (totalUnit?.data && selectedUnit) {
+      console.log('Total Komplain for Unit:', totalUnit.data[selectedUnit]);
+      return totalUnit.data[selectedUnit] || 0;
     }
     return 0;
-  }, [detailUnitData, selectedUnit]);
+  }, [totalUnit, selectedUnit]);
 
   const horizontalBarOptions = {
     responsive: true,
@@ -187,7 +197,8 @@ const DataUnit = () => {
       <section className="px-4 flex-1 pt-1">
         <Header
           title={`Laporan Komplain IT Bulan ${getMonthName(selectedMonth)} ${selectedYear}`}
-          lastUpdateTime={detailUnitData?.lastUpdate}
+          lastUpdateTime={detailUnit?.lastUpdate}
+          contextType="komplainUnit"
         />
 
         <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
@@ -203,14 +214,22 @@ const DataUnit = () => {
               onChange={(e) => setSelectedUnit(e.target.value)}
               className="bg-white border border-slate-500 rounded-md p-1 text-sm"
             >
-              {unitOrder.map((unit) => (
+              {unitOrder.filter(unit => detailUnit?.data?.unit && detailUnit.data.unit[unit]).map((unit) => (
                 <option key={unit} value={unit}>{unit}</option>
               ))}
             </select>
           </div>
 
+          {/* Debug Information */}
+          <div className="mb-4 p-4 bg-gray-100 rounded">
+            <h4 className="font-bold mb-2">Debug Information:</h4>
+            <pre className="whitespace-pre-wrap text-sm">
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {serviceChartConfig && (
+            {serviceChartConfig ? (
               <div className="bg-white p-4 rounded-lg shadow-lg">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-semibold text-sm">{`Grafik Unit: ${selectedUnit}`}</h3>
@@ -219,8 +238,12 @@ const DataUnit = () => {
                   <Bar data={serviceChartConfig} options={horizontalBarOptions} />
                 </div>
               </div>
+            ) : (
+              <div className="bg-white p-4 rounded-lg shadow-lg">
+                <p>No service data available for the selected unit.</p>
+              </div>
             )}
-            {statusChartConfig && (
+            {statusChartConfig ? (
               <div className="bg-white p-4 rounded-lg shadow-lg">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-semibold text-sm">Grafik Status</h3>
@@ -228,6 +251,10 @@ const DataUnit = () => {
                 <div style={{ width: '100%', height: 300 }}>
                   <Pie data={statusChartConfig} options={pieChartOptions} />
                 </div>
+              </div>
+            ) : (
+              <div className="bg-white p-4 rounded-lg shadow-lg">
+                <p>No status data available for the selected unit.</p>
               </div>
             )}
           </div>

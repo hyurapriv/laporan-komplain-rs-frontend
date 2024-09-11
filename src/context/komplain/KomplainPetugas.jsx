@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import useKomplainData from '../hooks/useKomplainData';
+import useKomplainPetugas from '../../hooks/komplain/useKomplainPetugas';
 
-const KomplainContext = createContext();
+const KomplainPetugasContext = createContext();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,15 +13,15 @@ const queryClient = new QueryClient({
   },
 });
 
-export const KomplainProvider = ({ children }) => {
+export const KomplainPetugasProvider = ({ children }) => {
   const [error, setError] = useState(null);
   
-  const komplainData = useKomplainData();
+  const komplainPetugasData = useKomplainPetugas();
 
   const handleMonthYearChange = (month, year) => {
     setError(null);
     try {
-      komplainData.updateMonthYear(month, year);
+      komplainPetugasData.updateMonthYear(month, year);
     } catch (err) {
       console.error('Error changing month/year:', err);
       setError('Failed to update month/year. Please try again.');
@@ -29,10 +29,10 @@ export const KomplainProvider = ({ children }) => {
   };
 
   const memoizedValue = useMemo(() => ({
-    ...komplainData,
+    ...komplainPetugasData,
     handleMonthYearChange,
     error,
-  }), [komplainData, error]);
+  }), [komplainPetugasData, error]);
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -40,17 +40,17 @@ export const KomplainProvider = ({ children }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <KomplainContext.Provider value={memoizedValue}>
+      <KomplainPetugasContext.Provider value={memoizedValue}>
         {children}
-      </KomplainContext.Provider>
+      </KomplainPetugasContext.Provider>
     </QueryClientProvider>
   );
 };
 
-export const useKomplainContext = () => {
-  const context = useContext(KomplainContext);
+export const useKomplainPetugasContext = () => {
+  const context = useContext(KomplainPetugasContext);
   if (context === undefined) {
-    throw new Error('useKomplainContext must be used within a KomplainProvider');
+    throw new Error('useKomplainPetugasContext must be used within a KomplainPetugasProvider');
   }
   return context;
 };

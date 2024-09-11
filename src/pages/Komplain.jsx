@@ -1,9 +1,10 @@
-import React, { Suspense, lazy, memo, useCallback, useMemo } from 'react';
-import { useKomplainContext } from '../context/KomplainContext';
+import React, { Suspense, lazy, memo, useCallback, useMemo, useState, useEffect } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IoSendSharp } from "react-icons/io5";
 import { FaTools, FaCheckCircle } from "react-icons/fa";
 import { MdPendingActions, MdOutlineAccessTimeFilled } from "react-icons/md";
 import { ErrorBoundary } from 'react-error-boundary';
+import { KomplainProvider, useKomplainContext } from '../context/komplain/KomplainContext';
 
 const Header = lazy(() => import('../layouts/Header'));
 const Footer = lazy(() => import('../layouts/Footer'));
@@ -22,24 +23,33 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => (
 
 const KomplainContent = () => {
   const {
-    resources,
+    totalData,
+    totalStatus,
+    totalUnit,
+    detailStatus,
+    isDetailStatusLoading,
     selectedMonth,
     selectedYear,
-    isLoading,
-    currentPage,
     error,
+    handleMonthYearChange,
   } = useKomplainContext();
-  
 
-  const [modalOpen, setModalOpen] = React.useState(false);
-  const [modalData, setModalData] = React.useState([]);
-  const [modalTitle, setModalTitle] = React.useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState([]);
+  const [modalTitle, setModalTitle] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isChangingMonth, setIsChangingMonth] = useState(false);
+
+  useEffect(() => {
+    if (totalData && totalStatus && totalUnit) {
+      setIsLoading(false);
+      setIsChangingMonth(false);
+    }
+  }, [totalData, totalStatus, totalUnit]);
 
   const openModal = useCallback((type) => {
     let detailData;
     try {
-      const detailStatus = resources.detailStatus?.read();
-
       switch (type) {
         case 'terkirim':
           detailData = detailStatus?.detail_data?.detail_data_terkirim || [];
@@ -68,7 +78,7 @@ const KomplainContent = () => {
     } catch (error) {
       console.error("Error opening modal:", error);
     }
-  }, [resources.detailStatus]);
+  }, [detailStatus]);
 
   const getIndonesianMonthName = useCallback((monthNumber) => {
     const monthNames = [
@@ -80,9 +90,6 @@ const KomplainContent = () => {
   }, []);
 
   const cards = useMemo(() => {
-    const totalStatus = resources.totalStatus?.read() || {};
-    const totalData = resources.totalData?.read() || {};
-
     return [
       { name: 'Menunggu', icon: <IoSendSharp />, bgColor: 'bg-sky-200', value: totalStatus?.total_status?.['Terkirim'] || 0, hasDetail: true, detailType: 'terkirim', tooltipText: 'Jumlah komplain yang terkirim, namun belum diproses oleh tim IT.' },
       { name: 'Proses', icon: <FaTools />, bgColor: 'bg-yellow-200', value: totalStatus?.total_status?.['Dalam Pengerjaan / Pengecekan Petugas'] || 0, hasDetail: true, detailType: 'proses', tooltipText: 'Jumlah komplain yang sedang diproses oleh tim IT.' },
@@ -91,28 +98,39 @@ const KomplainContent = () => {
       { name: 'Respon Time', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-orange-300', value: totalData?.respon_time || 'N/A', hasDetail: false, tooltipText: 'Rata-rata waktu respon untuk menangani komplain.' },
       { name: 'Durasi Pengerjaan', icon: <MdOutlineAccessTimeFilled />, bgColor: 'bg-violet-300', value: totalData?.durasi_pengerjaan || 'N/A', hasDetail: false, tooltipText: 'Rata-rata durasi waktu pengerjaan untuk menyelesaikan komplain.' },
     ];
-  }, [resources.totalStatus, resources.totalData]);
+  }, [totalStatus, totalData]);
+
+  const handleMonthChange = (event) => {
+    const newMonth = event.target.value;
+    setIsChangingMonth(true);
+    handleMonthYearChange(newMonth, selectedYear);
+  };
+
+  const handleYearChange = (event) => {
+    const newYear = event.target.value;
+    setIsChangingMonth(true);
+    handleMonthYearChange(selectedMonth, newYear);
+  };
 
   const renderContent = useCallback(() => {
-    if (isLoading) {
-      return <Loading />;
-    }
-
     if (error) {
       return <div>Error: {error}</div>;
     }
 
-    try {
-      const totalData = resources.totalData?.read() || {};
-      const totalUnit = resources.totalUnit?.read() || [];
+    if (isLoading || isChangingMonth) {
+      return <Loading />;
+    }
 
+    try {
       return (
         <>
-          <h3 className='mt-5 lg:mt-2 text-base lg:text-lg font-bold text-white'>
-            <span className='bg-light-green py-2 px-3 rounded'>
-              {`Total Komplain: ${totalData?.total_komplain || 0}`}
-            </span>
-          </h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className='text-base lg:text-lg font-bold text-white'>
+              <span className='bg-light-green py-2 px-3 rounded'>
+                {`Total Komplain: ${totalData?.total_komplain || 0}`}
+              </span>
+            </h3>
+          </div>
 
           <div className='grid grid-cols-2 md:grid-cols-6 gap-4 mt-8 lg:mt-12'>
             {cards.map((card, index) => (
@@ -133,19 +151,17 @@ const KomplainContent = () => {
       console.error("Error rendering content:", error);
       throw error;
     }
-  }, [isLoading, error, resources, cards, openModal]);
+  }, [error, isLoading, isChangingMonth, totalData, cards, totalUnit, openModal]);
 
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => {
-      // Reset the state of your app so the error doesn't happen again
-    }}>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
       <div className="flex flex-col min-h-screen">
         <div className="flex-grow">
           <section className='px-2 lg:px-8 xl:px-4 pt-4 lg:pt-1'>
             <Suspense fallback={<Loading />}>
               <Header
                 title={`Laporan Komplain IT Bulan ${getIndonesianMonthName(selectedMonth)} ${selectedYear}`}
-                lastUpdateTime={resources.totalData?.read()?.lastUpdate}
+                lastUpdateTime={totalData?.lastUpdate}
               />
             </Suspense>
 
@@ -159,6 +175,7 @@ const KomplainContent = () => {
                 onClose={() => setModalOpen(false)}
                 data={modalData}
                 title={modalTitle}
+                isLoading={isDetailStatusLoading}
               />
             </Suspense>
           </section>
@@ -171,4 +188,26 @@ const KomplainContent = () => {
   );
 };
 
-export default memo(KomplainContent);
+export async function getServerSideProps() {
+  const initialData = await fetchInitialData(); // fetch your initial data for the current month/year
+
+  return {
+    props: {
+      initialData,
+    },
+  };
+}
+
+export default function Dashboard({ initialData }) {
+  const queryClient = useMemo(() => new QueryClient(), []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <KomplainProvider initialData={initialData}>
+        <Suspense fallback={<Loading />}>
+          <KomplainContent />
+        </Suspense>
+      </KomplainProvider>
+    </QueryClientProvider>
+  );
+}

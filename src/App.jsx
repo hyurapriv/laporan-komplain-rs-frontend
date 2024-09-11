@@ -4,8 +4,9 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import useResponsive from './hooks/useResponsive';
-import { KomplainProvider } from './context/KomplainContext';
-
+import { KomplainProvider } from './context/komplain/KomplainContext';
+import { KomplainUnitProvider } from './context/komplain/KomplainUnitContext';
+import { KomplainPetugasProvider } from './context/komplain/KomplainPetugas';
 
 const Sidebar = lazy(() => import('./layouts/Sidebar'));
 const Navbar = lazy(() => import('./layouts/Navbar'));
@@ -51,32 +52,36 @@ function App() {
       <Router>
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <KomplainProvider>
-            <div className="flex flex-col h-screen overflow-x-hidden">
-              <Suspense fallback={<div className="h-16 bg-gray-200 animate-pulse" />}>
-                <Navbar />
-              </Suspense>
-              <div className="flex flex-1">
-                {!isMobile && (
-                  <Suspense fallback={<div className="w-16 bg-gray-100 animate-pulse" />}>
-                    <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+            <KomplainUnitProvider>
+              <KomplainPetugasProvider>
+                <div className="flex flex-col h-screen overflow-x-hidden">
+                  <Suspense fallback={<div className="h-16 bg-gray-200 animate-pulse" />}>
+                    <Navbar />
                   </Suspense>
-                )}
-                <main
-                  className="flex-1 bg-soft-green transition-all duration-300 ease-in-out overflow-y-auto"
-                  style={layoutStyle}
-                >
-                  <div className="container mx-auto px-4 py-6">
-                    <Suspense fallback={<div className="h-64 bg-white rounded shadow animate-pulse" />}>
-                      <Routes>
-                        {routes.map(({ path, component: Component }) => (
-                          <Route key={path} path={path} element={<Component />} />
-                        ))}
-                      </Routes>
-                    </Suspense>
+                  <div className="flex flex-1">
+                    {!isMobile && (
+                      <Suspense fallback={<div className="w-16 bg-gray-100 animate-pulse" />}>
+                        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+                      </Suspense>
+                    )}
+                    <main
+                      className="flex-1 bg-soft-green transition-all duration-300 ease-in-out overflow-y-auto"
+                      style={layoutStyle}
+                    >
+                      <div className="container mx-auto px-4 py-6">
+                        <Suspense fallback={<div className="h-64 bg-white rounded shadow animate-pulse" />}>
+                          <Routes>
+                            {routes.map(({ path, component: Component }) => (
+                              <Route key={path} path={path} element={<Component />} />
+                            ))}
+                          </Routes>
+                        </Suspense>
+                      </div>
+                    </main>
                   </div>
-                </main>
-              </div>
-            </div>
+                </div>
+              </KomplainPetugasProvider>
+            </KomplainUnitProvider>
           </KomplainProvider>
         </ErrorBoundary>
       </Router>
